@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Plaza en Juego — Experiencia periodística</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#13202b;
+    --ink-2:#1d2f3e;
+    --ink-3:#27445a;
+    --paper:#f4ead2;
+    --paper-2:#e9dbb9;
+    --paper-line:#cdbd95;
+    --red:#b8362a;
+    --red-deep:#8e2a20;
+    --teal:#2f7e83;
+    --gold:#d8a23a;
+    --muted:#7d8896;
+    --display:'Fraunces',Georgia,serif;
+    --body:'Newsreader',Georgia,serif;
+    --mono:'Space Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--body);
+    background:var(--ink);
+    color:var(--paper);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{
+    position:relative;
+    width:100%;
+    height:100dvh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(12px,3vw,32px);
+  }
+  .screen{width:100%;max-width:1080px;height:100%;display:flex;flex-direction:column}
+  .hidden{display:none!important}
+
+  /* ---------- background texture ---------- */
+  .grain{position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.05;
+    background-image:radial-gradient(var(--paper) .5px,transparent .5px);background-size:3px 3px;mix-blend-mode:overlay}
+
+  /* ---------- MENU ---------- */
+  #menu{justify-content:center;align-items:center;text-align:center;gap:0}
+  .masthead{width:100%;max-width:760px;border-top:3px solid var(--paper);border-bottom:3px solid var(--paper);
+    padding:10px 0;margin-bottom:26px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+  .masthead .ed{font-family:var(--mono);font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--paper-2);opacity:.75;text-align:left;line-height:1.5}
+  .masthead .ed.r{text-align:right}
+  .kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.42em;text-transform:uppercase;color:var(--red);margin-bottom:18px}
+  .title{font-family:var(--display);font-weight:900;font-size:clamp(2.7rem,10vw,6.4rem);line-height:.92;
+    letter-spacing:-.02em;color:var(--paper);text-shadow:0 2px 0 rgba(0,0,0,.25)}
+  .title em{font-style:italic;font-weight:500;color:var(--gold)}
+  .subtitle{font-family:var(--body);font-style:italic;font-size:clamp(1.05rem,2.6vw,1.5rem);color:var(--paper-2);
+    margin-top:18px;max-width:560px;line-height:1.45}
+  .dossier{margin-top:30px;display:flex;flex-direction:column;align-items:center;gap:16px;max-width:580px}
+  .brief{font-family:var(--mono);font-size:.8rem;line-height:1.85;color:var(--paper-2);
+    background:rgba(244,234,210,.05);border:1px solid rgba(244,234,210,.18);padding:16px 20px;text-align:left;
+    border-left:3px solid var(--teal)}
+  .brief b{color:var(--gold)}
+  .btn{font-family:var(--mono);font-weight:700;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;
+    cursor:pointer;border:none;padding:15px 30px;background:var(--red);color:var(--paper);
+    transition:transform .12s ease,background .2s ease;position:relative}
+  .btn:hover{background:var(--red-deep);transform:translateY(-2px)}
+  .btn:active{transform:translateY(0)}
+  .btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+  .btn.ghost{background:transparent;border:1px solid var(--paper-2);color:var(--paper-2)}
+  .btn.ghost:hover{background:rgba(244,234,210,.1)}
+  .credit{font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;color:var(--muted);margin-top:30px;text-transform:uppercase}
+
+  /* ---------- PLAY ---------- */
+  #play{flex-direction:row;gap:18px;align-items:stretch}
+  .stage-col{flex:1;display:flex;flex-direction:column;min-width:0}
+  .progress{display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .pip{font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;color:var(--muted);
+    border:1px solid rgba(244,234,210,.2);padding:3px 7px;text-transform:uppercase;border-radius:1px}
+  .pip.done{color:var(--ink);background:var(--gold);border-color:var(--gold)}
+  .pip.active{color:var(--paper);background:var(--red);border-color:var(--red)}
+
+  .scene{flex:1;display:flex;flex-direction:column;background:var(--ink-2);border:1px solid rgba(244,234,210,.12);
+    border-radius:3px;overflow:hidden;min-height:0;box-shadow:0 24px 60px -30px rgba(0,0,0,.7)}
+  .art{position:relative;flex:1;min-height:120px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;
+    background:linear-gradient(180deg,var(--ink-3),var(--ink-2))}
+  .art svg{width:100%;height:100%;display:block}
+  .art-fallback{position:absolute;inset:0;z-index:1}
+  .art-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
+  .art-img.failed{display:none}
+  .place-tag{position:absolute;top:12px;left:12px;z-index:3;font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;
+    text-transform:uppercase;background:rgba(19,32,43,.82);color:var(--gold);padding:5px 10px;border:1px solid rgba(216,162,58,.4)}
+
+  .dialogue{background:var(--paper);color:var(--ink);padding:clamp(16px,2.6vw,26px);min-height:170px;
+    display:flex;flex-direction:row;align-items:flex-start;gap:clamp(14px,2vw,20px);position:relative}
+  .dialogue:before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
+    background:repeating-linear-gradient(90deg,var(--red) 0 18px,transparent 18px 24px)}
+  .dtext{flex:1;min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+  .portrait{position:relative;flex:none;width:clamp(70px,12vw,108px);height:clamp(70px,12vw,108px);
+    border:2px solid var(--ink);border-radius:3px;overflow:hidden;background:var(--ink-2);box-shadow:4px 4px 0 var(--red);
+    animation:popin .35s cubic-bezier(.2,1.3,.4,1)}
+  @keyframes popin{from{opacity:0;transform:scale(.8)}to{opacity:1}}
+  .portrait .pf{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-weight:900;font-size:clamp(2rem,5vw,2.8rem);color:var(--gold);background:var(--ink-2);z-index:1}
+  .portrait .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
+  .portrait .pimg.failed{display:none}
+  .speaker{font-family:var(--mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--red);
+    font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .speaker .dot{width:7px;height:7px;border-radius:50%;background:var(--red)}
+  .speaker.narr{color:var(--teal)}
+  .speaker.narr .dot{background:var(--teal)}
+  .line{font-family:var(--body);font-size:clamp(1.05rem,2.5vw,1.42rem);line-height:1.5;color:#22150b;max-width:62ch}
+  .line.narr{font-style:italic;color:#4a3a26}
+  .clip{display:block;font-family:var(--body);font-size:clamp(1.05rem,2.5vw,1.4rem);line-height:1.55}
+  .controls{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .hint{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;color:var(--muted)}
+  .next{font-family:var(--mono);font-weight:700;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;
+    cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:11px 20px;
+    transition:background .18s,transform .12s}
+  .next:hover{background:var(--red);border-color:var(--red);transform:translateX(2px)}
+  .next:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  /* choices */
+  .choices{display:flex;flex-direction:column;gap:10px}
+  .choice{font-family:var(--body);font-size:1.05rem;line-height:1.4;text-align:left;cursor:pointer;
+    background:#fff;border:1px solid var(--paper-line);color:var(--ink);padding:13px 16px;transition:.15s;position:relative}
+  .choice:before{content:"“";font-family:var(--display);color:var(--red);margin-right:4px;font-size:1.3em;line-height:0}
+  .choice:hover{border-color:var(--red);background:#fff6e8;transform:translateX(3px)}
+  .choice:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  /* ---------- notebook rail ---------- */
+  .notebook{width:248px;flex-shrink:0;display:flex;flex-direction:column;background:var(--ink-2);
+    border:1px solid rgba(244,234,210,.12);border-radius:3px;overflow:hidden}
+  .nb-head{padding:13px 15px;border-bottom:1px solid rgba(244,234,210,.12)}
+  .nb-head h3{font-family:var(--display);font-weight:600;font-size:1.1rem;color:var(--paper)}
+  .nb-head .count{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-top:3px}
+  .nb-list{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px}
+  .nb-empty{font-family:var(--mono);font-size:.66rem;line-height:1.8;color:var(--muted);text-align:center;
+    margin:auto;padding:0 8px;letter-spacing:.04em}
+  .card{background:var(--paper);color:var(--ink);padding:13px 13px 14px;position:relative;
+    box-shadow:0 8px 18px -10px rgba(0,0,0,.6);border-radius:2px;animation:pin .45s cubic-bezier(.2,1.2,.4,1)}
+  .card:nth-child(odd){transform:rotate(-1.1deg)}
+  .card:nth-child(even){transform:rotate(1deg)}
+  @keyframes pin{from{opacity:0;transform:translateY(-14px) scale(.9) rotate(-3deg)}to{opacity:1}}
+  .stamp{position:absolute;top:-9px;right:-6px;font-family:var(--mono);font-weight:700;font-size:.56rem;
+    letter-spacing:.1em;color:var(--red);border:1.5px solid var(--red);padding:3px 6px;background:var(--paper);
+    transform:rotate(7deg);text-transform:uppercase}
+  .card h4{font-family:var(--display);font-weight:600;font-size:.95rem;line-height:1.15;margin-bottom:6px;color:#22150b}
+  .card .v{font-family:var(--mono);font-weight:700;font-size:1.5rem;color:var(--red);line-height:1;margin:4px 0}
+  .card .v small{font-size:.72rem;color:var(--ink)}
+  .card p{font-size:.86rem;line-height:1.4;color:#3a2c1c}
+
+  /* ---------- fact overlay ---------- */
+  .overlay{position:fixed;inset:0;z-index:40;background:rgba(8,14,19,.78);display:flex;align-items:center;
+    justify-content:center;padding:20px;backdrop-filter:blur(3px);animation:fade .3s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .fact{max-width:540px;width:100%;background:var(--paper);color:var(--ink);border-radius:3px;overflow:hidden;
+    box-shadow:0 40px 90px -30px #000;animation:rise .4s cubic-bezier(.2,1,.3,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(26px) scale(.96)}to{opacity:1;transform:none}}
+  .fact-bar{background:var(--ink);color:var(--gold);font-family:var(--mono);font-weight:700;font-size:.7rem;
+    letter-spacing:.24em;text-transform:uppercase;padding:11px 22px;display:flex;justify-content:space-between;align-items:center}
+  .fact-body{padding:24px 24px 22px}
+  .fact-body h2{font-family:var(--display);font-weight:600;font-size:clamp(1.4rem,4vw,2rem);line-height:1.05;
+    color:#22150b;margin-bottom:6px}
+  .fact-data{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 12px;padding:14px 0;
+    border-top:1px solid var(--paper-line);border-bottom:1px solid var(--paper-line)}
+  .datum{display:flex;flex-direction:column}
+  .datum .num{font-family:var(--mono);font-weight:700;font-size:clamp(1.5rem,5vw,2.1rem);color:var(--red);line-height:1}
+  .datum .lab{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-top:5px}
+  .fact-text{font-size:1.02rem;line-height:1.55;color:#33261a}
+  .fact-src{font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;color:var(--muted);margin-top:12px}
+  .fact-foot{padding:0 24px 24px;display:flex;justify-content:flex-end}
+
+  /* ---------- END ---------- */
+  #end{justify-content:center;align-items:center;overflow-y:auto;padding-block:20px}
+  .endwrap{width:100%;max-width:680px;display:flex;flex-direction:column;align-items:center;gap:22px;margin:auto}
+  .frontpage{width:100%;background:var(--paper);color:var(--ink);padding:clamp(20px,4vw,40px);
+    box-shadow:0 40px 90px -30px #000;animation:rise .6s cubic-bezier(.2,1,.3,1);border-radius:2px}
+  .fp-name{font-family:var(--display);font-weight:900;font-size:clamp(1.8rem,6vw,3rem);text-align:center;
+    letter-spacing:-.01em;color:#1a1109;border-bottom:3px double var(--ink);padding-bottom:8px}
+  .fp-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.56rem;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding:7px 0;border-bottom:1px solid var(--paper-line)}
+  .fp-kicker{font-family:var(--mono);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red);
+    margin-top:18px;text-align:center;font-weight:700}
+  .fp-headline{font-family:var(--display);font-weight:900;font-size:clamp(1.5rem,5.2vw,2.6rem);line-height:1.04;
+    text-align:center;color:#1a1109;margin:10px 0 6px}
+  .fp-by{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-align:center;color:var(--ink-3);margin-bottom:16px}
+  .fp-cols{column-count:2;column-gap:22px;column-rule:1px solid var(--paper-line);font-size:.92rem;line-height:1.6;color:#2c2014;text-align:justify}
+  .fp-cols p{margin-bottom:9px}
+  .fp-cols p:first-child:first-letter{font-family:var(--display);font-weight:900;float:left;font-size:3.2em;line-height:.8;padding:4px 8px 0 0;color:var(--red)}
+  .endnote{text-align:center;max-width:520px}
+  .endnote .em{font-family:var(--display);font-style:italic;font-size:clamp(1.15rem,3vw,1.5rem);color:var(--paper);line-height:1.4}
+  .endnote .small{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;color:var(--paper-2);margin-top:10px;line-height:1.7}
+  .end-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .countdown{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+
+  @media (max-width:760px){
+    #play{flex-direction:column;gap:12px}
+    .notebook{width:100%;max-height:34vh;order:2}
+    .stage-col{order:1;flex:none}
+    .scene{min-height:46vh}
+    .nb-list{flex-direction:row;overflow-x:auto;overflow-y:hidden}
+    .card{min-width:200px}
+    .fp-cols{column-count:1}
+    .progress{gap:4px}
+    .pip{font-size:.5rem;padding:2px 5px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div id="app">
+
+  <!-- ===================== MENU ===================== -->
+  <section id="menu" class="screen" role="region" aria-label="Menú de bienvenida">
+    <div class="masthead">
+      <div class="ed">Edición especial<br>Centro de Piura</div>
+      <div class="ed r">Investigación<br>en curso</div>
+    </div>
+    <div class="kicker">Experiencia periodística</div>
+    <h1 class="title">La Plaza<br><em>en Juego</em></h1>
+    <p class="subtitle">Eres Lucía, periodista. Una obra bajo la Plaza Tres Culturas no es lo que parece. Recorre la ciudad, entrevista a sus vecinos y arma la historia.</p>
+    <div class="dossier">
+      <div class="brief">
+        MISIÓN: investigar el <b>estanque de tormentas</b> que se construye bajo la plaza.
+        Avanza por <b>6 niveles</b>, recoge <b>4 pruebas</b> en tu cuaderno y publica la portada.
+      </div>
+      <button class="btn" id="startBtn">Comenzar investigación ▸</button>
+    </div>
+    <div class="credit">Basado en el caso del drenaje pluvial del centro de Piura</div>
+  </section>
+
+  <!-- ===================== PLAY ===================== -->
+  <section id="play" class="screen hidden" role="region" aria-label="Juego">
+    <div class="stage-col">
+      <div class="progress" id="progress" aria-label="Progreso de niveles"></div>
+      <div class="scene">
+        <div class="art" id="art"><span class="place-tag" id="placeTag"></span></div>
+        <div class="dialogue" id="dialogue"></div>
+      </div>
+    </div>
+    <aside class="notebook" aria-label="Cuaderno de pruebas">
+      <div class="nb-head">
+        <h3>Cuaderno de pruebas</h3>
+        <div class="count" id="nbCount">0 / 4 recogidas</div>
+      </div>
+      <div class="nb-list" id="nbList">
+        <div class="nb-empty" id="nbEmpty">Las pruebas que descubras aparecerán aquí, selladas como evidencia.</div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ===================== END ===================== -->
+  <section id="end" class="screen hidden" role="region" aria-label="Pantalla final"></section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =========================================================================
+     CONFIG — AQUÍ COLOCAS TUS IMÁGENES (PNG)
+     -------------------------------------------------------------------------
+     Pon el archivo .html junto a dos carpetas: "escenarios/" y "caras/".
+     Si una imagen aún no existe, el juego muestra una ilustración de respaldo
+     (o las iniciales del personaje), así que nunca se ve roto.
+
+       la-plaza-en-juego.html
+       escenarios/   -> fondos de cada lugar  (PNG horizontal, ideal 1280x800)
+       caras/        -> rostros de personajes (PNG cuadrado, ideal 400x400)
+
+     Para cambiar una ruta o nombre, edita el valor de texto correspondiente.
+     ========================================================================= */
+  const CONFIG = {
+    escenarios: {
+      redaccion: "escenarios/redaccion.png", // Misión y Nivel 6 (sala de redacción)
+      oficina:   "escenarios/oficina.png",   // Nivel 1 (tu oficina con el periódico)
+      research:  "escenarios/research.png",  // Nivel 2 (investigando documentos en la PC)
+      obra:      "escenarios/obra.png",       // Niveles 3 y 4 (la obra de la plaza)
+      plaza:     "escenarios/plaza.png",      // Nivel 5 (la plaza y los árboles)
+      vecinos:   "escenarios/vecinos.png"     // Pantalla final (vecinos leyendo la noticia)
+    },
+    caras: {
+      "Lucía":       "caras/lucia.png",        // la periodista (protagonista)
+      "Editor":      "caras/editor.png",       // el editor del diario
+      "Comerciante": "caras/comerciante.png",  // comerciante del Nivel 3
+      "vecino1":     "caras/vecino1.png",       // vecino del Nivel 4 (napa freática)
+      "vecino2":     "caras/vecino2.png"        // vecino del Nivel 5 (árboles)
+      // El Narrador y el "Periódico" no muestran rostro (no son personas).
+    }
+  };
+
+  /* ---------------- SVG scene art ---------------- */
+  function bg(){return '<rect width="700" height="420" fill="url(#sky)"/>';}
+  const ART = {
+    redaccion: `<svg viewBox="0 0 700 420" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27445a"/><stop offset="1" stop-color="#1d2f3e"/></linearGradient></defs>
+      ${bg()}
+      <rect x="40" y="60" width="200" height="130" fill="#16242f" stroke="#3a5a72" stroke-width="2"/>
+      <g opacity=".5"><rect x="55" y="75" width="18" height="22" fill="#d8a23a"/><rect x="85" y="90" width="18" height="22" fill="#d8a23a"/><rect x="120" y="78" width="18" height="22" fill="#d8a23a"/><rect x="160" y="95" width="18" height="22" fill="#d8a23a"/><rect x="195" y="82" width="18" height="22" fill="#d8a23a"/></g>
+      <rect x="0" y="300" width="700" height="120" fill="#142028"/>
+      <rect x="70" y="250" width="160" height="60" rx="3" fill="#0f1a22"/><rect x="78" y="232" width="60" height="20" fill="#2f7e83"/><rect x="78" y="226" width="60" height="8" fill="#27636a"/>
+      <rect x="360" y="245" width="180" height="65" rx="3" fill="#0f1a22"/><rect x="372" y="224" width="68" height="22" fill="#2f7e83"/>
+      <circle cx="300" cy="270" r="26" fill="#b8362a"/><rect x="284" y="296" width="32" height="40" rx="6" fill="#8e2a20"/>
+      <rect x="120" y="150" width="120" height="8" fill="#3a5a72" opacity=".4"/></svg>`,
+    oficina: `<svg viewBox="0 0 700 420" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d4a5e"/><stop offset="1" stop-color="#1d2f3e"/></linearGradient></defs>
+      ${bg()}
+      <rect x="0" y="280" width="700" height="140" fill="#3a2c1c"/>
+      <rect x="0" y="270" width="700" height="14" fill="#4a3a26"/>
+      <g transform="rotate(-4 350 320)"><rect x="230" y="250" width="240" height="150" fill="#f4ead2" stroke="#cdbd95"/>
+        <rect x="245" y="262" width="210" height="20" fill="#22150b"/>
+        <rect x="245" y="292" width="100" height="6" fill="#7d8896"/><rect x="245" y="304" width="210" height="4" fill="#a99a78"/><rect x="245" y="312" width="210" height="4" fill="#a99a78"/><rect x="245" y="320" width="180" height="4" fill="#a99a78"/>
+        <rect x="355" y="296" width="100" height="60" fill="#2f7e83" opacity=".6"/></g>
+      <rect x="60" y="220" width="70" height="60" rx="4" fill="#0f1a22"/><ellipse cx="95" cy="200" rx="34" ry="20" fill="#d8a23a" opacity=".85"/></svg>`,
+    research: `<svg viewBox="0 0 700 420" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#23394a"/><stop offset="1" stop-color="#16242f"/></linearGradient></defs>
+      ${bg()}
+      <rect x="0" y="320" width="700" height="100" fill="#142028"/>
+      <rect x="200" y="120" width="300" height="200" rx="6" fill="#0c151b" stroke="#3a5a72" stroke-width="3"/>
+      <rect x="218" y="138" width="264" height="164" fill="#0f2630"/>
+      <rect x="236" y="156" width="120" height="14" fill="#d8a23a"/>
+      <rect x="236" y="184" width="228" height="8" fill="#2f7e83"/><rect x="236" y="200" width="200" height="8" fill="#395866"/><rect x="236" y="216" width="228" height="8" fill="#395866"/>
+      <g><rect x="300" y="240" width="22" height="46" fill="#2f7e83"/><rect x="332" y="258" width="22" height="28" fill="#2f7e83"/><rect x="364" y="226" width="22" height="60" fill="#b8362a"/><rect x="396" y="250" width="22" height="36" fill="#2f7e83"/></g>
+      <rect x="330" y="320" width="40" height="18" fill="#0c151b"/><rect x="300" y="338" width="100" height="8" rx="4" fill="#1d2f3e"/></svg>`,
+    obra: `<svg viewBox="0 0 700 420" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3e5d6e"/><stop offset="1" stop-color="#2d4a5e"/></linearGradient></defs>
+      ${bg()}
+      <rect x="0" y="300" width="700" height="120" fill="#5a4a30"/>
+      <rect x="0" y="300" width="700" height="120" fill="#4a3a22" opacity=".5"/>
+      <g stroke="#d8a23a" stroke-width="6" opacity=".9"><line x1="40" y1="270" x2="40" y2="330"/><line x1="160" y1="270" x2="160" y2="330"/><line x1="280" y1="270" x2="280" y2="330"/><line x1="40" y1="278" x2="280" y2="278"/><line x1="40" y1="312" x2="280" y2="312"/></g>
+      <g><polygon points="120,330 150,280 165,330" fill="#b8362a"/><rect x="115" y="328" width="55" height="8" fill="#8e2a20"/></g>
+      <g><rect x="470" y="120" width="12" height="210" fill="#7d8896"/><rect x="470" y="120" width="150" height="12" fill="#d8a23a"/><line x1="610" y1="132" x2="610" y2="180" stroke="#27445a" stroke-width="4"/><rect x="600" y="180" width="22" height="16" fill="#27445a"/></g>
+      <ellipse cx="360" cy="356" rx="120" ry="14" fill="#000" opacity=".18"/></svg>`,
+    plaza: `<svg viewBox="0 0 700 420" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0b463" /><stop offset="1" stop-color="#c98a45"/></linearGradient></defs>
+      ${bg()}
+      <rect x="0" y="320" width="700" height="100" fill="#3a2c1c"/>
+      <g><rect x="130" y="200" width="26" height="130" fill="#5a3d22"/><circle cx="143" cy="180" r="70" fill="#2f6e4a"/><circle cx="100" cy="200" r="46" fill="#357a52"/><circle cx="188" cy="200" r="46" fill="#357a52"/></g>
+      <g><rect x="470" y="210" width="24" height="120" fill="#5a3d22"/><circle cx="482" cy="190" r="62" fill="#2f6e4a"/><circle cx="442" cy="208" r="40" fill="#357a52"/><circle cx="522" cy="208" r="40" fill="#357a52"/>
+        <g transform="translate(482 188)" stroke="#b8362a" stroke-width="5"><line x1="-26" y1="-26" x2="26" y2="26"/><line x1="26" y1="-26" x2="-26" y2="26"/></g></g>
+      <rect x="300" y="330" width="110" height="10" fill="#5a3d22"/><rect x="306" y="340" width="8" height="20" fill="#5a3d22"/><rect x="396" y="340" width="8" height="20" fill="#5a3d22"/></svg>`,
+    portada: `<svg viewBox="0 0 700 420" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d4a5e"/><stop offset="1" stop-color="#16242f"/></linearGradient></defs>
+      ${bg()}
+      <g transform="rotate(-3 350 230)"><rect x="190" y="70" width="320" height="330" fill="#f4ead2" stroke="#cdbd95" stroke-width="2"/>
+      <rect x="210" y="92" width="280" height="26" fill="#22150b"/>
+      <rect x="210" y="130" width="280" height="14" fill="#b8362a"/>
+      <rect x="210" y="156" width="280" height="10" fill="#3a2c1c"/><rect x="210" y="172" width="240" height="10" fill="#3a2c1c"/>
+      <rect x="210" y="200" width="130" height="90" fill="#2f7e83" opacity=".7"/>
+      <rect x="352" y="200" width="138" height="6" fill="#a99a78"/><rect x="352" y="212" width="138" height="6" fill="#a99a78"/><rect x="352" y="224" width="138" height="6" fill="#a99a78"/><rect x="352" y="236" width="110" height="6" fill="#a99a78"/><rect x="352" y="252" width="138" height="6" fill="#a99a78"/><rect x="352" y="264" width="138" height="6" fill="#a99a78"/>
+      <rect x="210" y="306" width="280" height="6" fill="#a99a78"/><rect x="210" y="318" width="280" height="6" fill="#a99a78"/><rect x="210" y="330" width="220" height="6" fill="#a99a78"/></g></svg>`,
+    vecinos: `<svg viewBox="0 0 700 420" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0b463"/><stop offset="1" stop-color="#c98a45"/></linearGradient></defs>
+      ${bg()}
+      <rect x="0" y="330" width="700" height="90" fill="#3a2c1c"/>
+      <g><circle cx="220" cy="200" r="30" fill="#8e2a20"/><rect x="196" y="226" width="48" height="90" rx="10" fill="#b8362a"/><rect x="186" y="250" width="78" height="48" fill="#f4ead2" stroke="#cdbd95"/><rect x="194" y="258" width="62" height="6" fill="#22150b"/><rect x="194" y="270" width="50" height="4" fill="#7d8896"/><rect x="194" y="280" width="62" height="4" fill="#7d8896"/></g>
+      <g><circle cx="420" cy="210" r="28" fill="#27445a"/><rect x="398" y="234" width="44" height="84" rx="10" fill="#2f7e83"/><rect x="388" y="256" width="72" height="44" fill="#f4ead2" stroke="#cdbd95"/><rect x="396" y="263" width="56" height="6" fill="#22150b"/><rect x="396" y="275" width="46" height="4" fill="#7d8896"/><rect x="396" y="285" width="56" height="4" fill="#7d8896"/></g></svg>`
+  };
+
+  /* ---------------- Story data ---------------- */
+  const N = (text)=>({who:"narr",text});
+  const SCENES = [
+    { level:"MISIÓN", place:"Sala de redacción", art:"redaccion", lines:[
+        N("Sala de redacción. Tu editor te llama a su escritorio."),
+        {who:"Editor",text:"Han llegado denuncias sobre la construcción del estanque de tormentas. Tu trabajo es descubrir qué está pasando realmente."},
+        {who:"Lucía",text:"Cuente con ello. Empezaré por revisar de qué se trata esa obra."}
+    ]},
+    { level:"NIVEL 1", place:"Tu oficina", art:"oficina", lines:[
+        N("En tu oficina encuentras un periódico sobre el escritorio."),
+        {who:"Periódico",text:"La Plaza Tres Culturas es uno de los puntos más bajos del centro de Piura, donde se acumulan las aguas de lluvia de varios sectores de la ciudad."},
+        {who:"Periódico",text:"Ante el problema, la Municipalidad Provincial de Piura propone construir un estanque de tormentas bajo la plaza para reducir las inundaciones."},
+        {who:"Lucía",text:"Suena razonable… pero quiero ver los números. Voy a entrar a internet."}
+    ]},
+    { level:"NIVEL 2", place:"Investigando los documentos", art:"research", lines:[
+        {who:"Lucía",text:"Veamos qué dicen los documentos sobre el presupuesto de esta obra."},
+        {who:"Lucía",text:"El primer expediente hablaba de 18.7 millones… pero el nuevo monto supera los 70 millones."},
+        {who:"Lucía",text:"¿Más de 70 millones? Eso es un incremento considerable respecto al monto inicial."}
+      ], fact:{
+        n:"01", title:"El presupuesto casi se cuadruplicó",
+        data:[{num:"S/ 18.7 M",lab:"Monto inicial · 2023"},{num:"S/ 69 M",lab:"Monto aprobado · 2024"}],
+        text:"El 21 de diciembre de 2023 se aprobó el expediente técnico por S/ 18.7 millones, con 7 meses de plazo. Tras varias observaciones del Gobierno Regional, el 27 de diciembre de 2024 se aprobó un nuevo expediente de S/ 69 millones y 210 días de plazo.",
+        src:"Res. jefatural 297-2023-OI/MPP · Res. DGC 339-2024-GRI"
+      },
+      card:{title:"Sobrecosto de la obra",v:"S/ 69 M",vsmall:" (antes S/ 18.7 M)",p:"El presupuesto pasó de 18.7 a 69 millones de soles entre 2023 y 2024."}
+    },
+    { level:"NIVEL 3", place:"La obra · Plaza Tres Culturas", art:"obra", lines:[
+        N("Llegas al centro de Piura. La obra luce cercada y con poco movimiento de trabajadores."),
+        {who:"Lucía",text:"Buenos días. Estoy investigando esta obra. ¿Podría contarme cómo ha sido su avance estos meses?"},
+        {who:"Comerciante",text:"La verdad, señorita, avanza muy lento. Hay días en que casi no vemos movimiento y la obra sigue sin terminar."},
+        {who:"Lucía",text:"¿Considera que los trabajos han durado más de lo esperado?"},
+        {who:"Comerciante",text:"Sí, bastante más. Nos dijeron que avanzaría rápido, pero ya pasó mucho tiempo y seguimos igual."},
+        {who:"Lucía",text:"Voy a revisar los registros oficiales en Infobras para verificar el estado real del proyecto."}
+      ], fact:{
+        n:"02", title:"Más del 80 % de retraso",
+        data:[{num:"10.48 %",lab:"Avance real · abr 2026"},{num:"91 %",lab:"Avance esperado"}],
+        text:"El avance ejecutado hasta el 30 de abril de 2026 apenas alcanzó el 10.48 %, cuando debía haber llegado al 91 %, según los registros oficiales de Infobras. El proyecto acumula más del 80 % de retraso respecto a su propio cronograma.",
+        src:"Plataforma Infobras · registros oficiales"
+      },
+      card:{title:"Retraso en la ejecución",v:"10.48 %",vsmall:" de 91 %",p:"El avance real está más de 80 % por debajo de lo planificado."}
+    },
+    { level:"NIVEL 4", place:"En la calle · un vecino", art:"obra", lines:[
+        N("Caminas un poco más y te cruzas con un vecino."),
+        {who:"Lucía",text:"Hola, buen día. Además del aumento del presupuesto y los retrasos, ¿hay alguna otra preocupación sobre esta obra?"},
+        {who:"Vecino",face:"vecino1",text:"Nos preocupa que sigan modificando el proyecto. Hemos escuchado que debajo hay mucha agua y que eso podría dar problemas en la construcción."},
+        {who:"Lucía",text:"¿Y qué riesgo representa?"},
+        {who:"Vecino",face:"vecino1",text:"La presión del agua subterránea puede afectar la obra si no se aplican medidas de control adecuadas."}
+      ], fact:{
+        n:"03", title:"La napa freática bajo la plaza",
+        data:[{num:"3.60 m",lab:"Nivel del agua"},{num:"9 m",lab:"Profundidad de excavación"}],
+        text:"Bajo la Plaza Tres Culturas hay una napa freática a unos 3.60 metros de profundidad, mientras que la excavación del estanque llegará hasta los 9 metros. Eso obliga a usar sistemas de bombeo para controlar el agua y evitar riesgos estructurales.",
+        src:"Estudio técnico del proyecto"
+      },
+      card:{title:"Riesgo del agua subterránea",v:"9 m",vsmall:" vs napa a 3.60 m",p:"La excavación baja muy por debajo del nivel del agua subterránea."}
+    },
+    { level:"NIVEL 5", place:"En la plaza · otro vecino", art:"plaza", lines:[
+        N("Sigues caminando y encuentras a otro vecino junto a los árboles de la plaza."),
+        {who:"Lucía",text:"Buenas tardes, estoy investigando la obra del estanque de tormentas. ¿Qué opina de lo que está pasando aquí?"},
+        {who:"Vecino",face:"vecino2",text:"No estamos contentos. La plaza ya no es la misma y hay mucha incertidumbre."},
+        {who:"Lucía",text:"¿Qué es lo que más le preocupa?"},
+        {who:"Vecino",face:"vecino2",text:"Los árboles. Son antiguos, forman parte de la historia de la plaza y dicen que varios van a ser retirados."},
+        {who:"Lucía",text:"¿Los ciudadanos están de acuerdo con eso?"},
+        {who:"Vecino",face:"vecino2",text:"No todos. Algunos aceptan la obra por las inundaciones, pero otros sentimos que se está perdiendo algo importante."}
+      ], fact:{
+        n:"04", title:"Árboles patrimoniales en riesgo",
+        data:[{num:"80–100",lab:"Años de antigüedad"},{num:"Retiro",lab:"Contemplado en el proyecto"}],
+        text:"La obra implica intervenir árboles patrimoniales de más de 80 e incluso 100 años. No solo forman parte del paisaje histórico: mejoran la calidad del aire y dan sombra. El proyecto contempla su retiro y su reposición no garantiza el mismo valor que los originales.",
+        src:"Vecinos y especialistas consultados"
+      },
+      card:{title:"Pérdida de patrimonio verde",v:"80–100",vsmall:" años de árboles",p:"El proyecto contempla retirar árboles históricos de difícil reposición."}
+    },
+    { level:"NIVEL 6", place:"De vuelta en la redacción", art:"redaccion", lines:[
+        N("Regresas a la redacción después de tu investigación en la Plaza Tres Culturas."),
+        {who:"Editor",text:"¿Y bien, Lucía? ¿Qué descubriste en la investigación?"},
+        {who:"Lucía",text:"Es un caso más complejo de lo que parecía. La obra pasó de 18 millones a más de 70 millones de soles, con constantes modificaciones en el diseño."},
+        {who:"Editor",text:"Entonces, ¿cuál es tu conclusión?"},
+        {who:"Lucía",text:"Que no es solo una obra de drenaje. Es un proyecto complejo, con problemas técnicos, ambientales y de gestión que aún no se han resuelto."},
+        {who:"Editor",text:"Perfecto. ¿Y el titular? Tú eliges."}
+      ], choice:{
+        prompt:"Elige el titular para la portada de mañana:",
+        options:[
+          {text:"Plaza Tres Culturas: lo que prometió ser una solución, está por perder un patrimonio", best:true},
+          {text:"Avanza con normalidad la obra del estanque de tormentas en Piura", best:false},
+          {text:"Vecinos celebran el nuevo proyecto de drenaje del centro", best:false}
+        ]
+      }
+    }
+  ];
+
+  /* ---------------- State ---------------- */
+  const state = { i:0, j:0, evidence:[], headline:null };
+  let typing = false, typeTimer = null, redirectTimer = null;
+
+  const $ = (s)=>document.querySelector(s);
+  const menu=$("#menu"), play=$("#play"), end=$("#end");
+  const artEl=$("#art"), placeTag=$("#placeTag"), dlg=$("#dialogue");
+  const progress=$("#progress"), nbList=$("#nbList"), nbCount=$("#nbCount"), nbEmpty=$("#nbEmpty");
+
+  /* ---------------- Navigation ---------------- */
+  function show(screen){
+    [menu,play,end].forEach(s=>s.classList.add("hidden"));
+    screen.classList.remove("hidden");
+  }
+
+  function startGame(){
+    state.i=0; state.j=0; state.evidence=[]; state.headline=null;
+    nbList.innerHTML=''; nbList.appendChild(nbEmpty); nbEmpty.style.display='';
+    updateCount();
+    show(play);
+    renderScene();
+  }
+
+  function backToMenu(){
+    if(redirectTimer){clearInterval(redirectTimer);redirectTimer=null;}
+    show(menu);
+    $("#startBtn").focus();
+  }
+
+  /* ---------------- Progress pips ---------------- */
+  function renderProgress(){
+    progress.innerHTML='';
+    SCENES.forEach((sc,idx)=>{
+      const p=document.createElement('span');
+      p.className='pip'+(idx<state.i?' done':idx===state.i?' active':'');
+      p.textContent=sc.level;
+      progress.appendChild(p);
+    });
+    const pub=document.createElement('span');
+    pub.className='pip'+(state.i>=SCENES.length?' done':'');
+    pub.textContent='PORTADA';
+    progress.appendChild(pub);
+  }
+
+  /* ---------------- Scene rendering ---------------- */
+  function renderScene(){
+    const sc=SCENES[state.i];
+    if(!sc){return finish();}
+    renderProgress();
+    artEl.innerHTML=artHTML(sc.art);
+    placeTag.textContent=sc.place;
+    artEl.appendChild(placeTag);
+    renderLine();
+  }
+
+  // background: shows the PNG; if it is missing, the SVG illustration underneath shows instead
+  function artHTML(key){
+    const svg=ART[key]||'';
+    const src=CONFIG.escenarios[key]||'';
+    return '<div class="art-fallback">'+svg+'</div>'+
+      (src?'<img class="art-img" alt="" src="'+src+'" onerror="this.classList.add(\'failed\')">':'');
+  }
+
+  // portrait of the speaker; empty for the narrator and the newspaper (not people)
+  function faceHTML(line){
+    if(line.who==='narr'||line.who==='Periódico') return '';
+    const key=line.face||line.who;
+    const src=CONFIG.caras[key]||'';
+    const initial=(line.who.trim()[0]||'?').toUpperCase();
+    return '<div class="portrait"><div class="pf">'+initial+'</div>'+
+      (src?'<img class="pimg" alt="'+line.who+'" src="'+src+'" onerror="this.classList.add(\'failed\')">':'')+
+      '</div>';
+  }
+
+  function speakerClass(who){return who==='narr'?'narr':'';}
+  function speakerLabel(who){return who==='narr'?'Narración':who;}
+
+  function renderLine(){
+    const sc=SCENES[state.i];
+    const line=sc.lines[state.j];
+    const last = state.j===sc.lines.length-1;
+    dlg.innerHTML=
+      faceHTML(line)+
+      '<div class="dtext">'+
+        '<div>'+
+          '<div class="speaker '+speakerClass(line.who)+'"><span class="dot"></span>'+speakerLabel(line.who)+'</div>'+
+          '<p class="line '+speakerClass(line.who)+'"><span class="clip" id="clip"></span></p>'+
+        '</div>'+
+        '<div class="controls">'+
+          '<span class="hint">Toca o pulsa Espacio para continuar</span>'+
+          '<button class="next" id="nextBtn">'+(last?(sc.fact?'Anotar prueba ▸':sc.choice?'Decidir titular ▸':'Continuar ▸'):'Continuar ▸')+'</button>'+
+        '</div>'+
+      '</div>';
+    typeText($("#clip"), line.text);
+    $("#nextBtn").addEventListener('click', advance);
+  }
+
+  function typeText(node,text){
+    if(typeTimer)clearInterval(typeTimer);
+    typing=true; node.textContent='';
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      node.textContent=text; typing=false; return;
+    }
+    let k=0;
+    typeTimer=setInterval(()=>{
+      node.textContent=text.slice(0,++k);
+      if(k>=text.length){clearInterval(typeTimer);typing=false;}
+    },16);
+  }
+
+  function advance(){
+    const sc=SCENES[state.i];
+    const node=$("#clip");
+    if(typing && node){ // finish typing instantly on first tap
+      clearInterval(typeTimer); node.textContent=sc.lines[state.j].text; typing=false; return;
+    }
+    if(state.j < sc.lines.length-1){ state.j++; renderLine(); return; }
+    // last line done
+    if(sc.fact){ showFact(sc); return; }
+    if(sc.choice){ showChoice(sc); return; }
+    nextScene();
+  }
+
+  function nextScene(){ state.i++; state.j=0; renderScene(); }
+
+  /* ---------------- Fact overlay ---------------- */
+  function showFact(sc){
+    const f=sc.fact;
+    const ov=document.createElement('div');
+    ov.className='overlay'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+    ov.innerHTML=
+      '<div class="fact">'+
+        '<div class="fact-bar"><span>¡Sabías que!</span><span>Prueba '+f.n+'/04</span></div>'+
+        '<div class="fact-body">'+
+          '<h2>'+f.title+'</h2>'+
+          '<div class="fact-data">'+f.data.map(d=>'<div class="datum"><span class="num">'+d.num+'</span><span class="lab">'+d.lab+'</span></div>').join('')+'</div>'+
+          '<p class="fact-text">'+f.text+'</p>'+
+          '<div class="fact-src">Fuente: '+f.src+'</div>'+
+        '</div>'+
+        '<div class="fact-foot"><button class="btn" id="saveFact">Guardar en el cuaderno ▸</button></div>'+
+      '</div>';
+    document.getElementById('app').appendChild(ov);
+    const save=$("#saveFact"); save.focus();
+    save.addEventListener('click',()=>{
+      addEvidence(sc.card);
+      ov.remove();
+      nextScene();
+    });
+  }
+
+  function addEvidence(card){
+    if(state.evidence.includes(card.title))return;
+    state.evidence.push(card.title);
+    nbEmpty.style.display='none';
+    const c=document.createElement('div');
+    c.className='card';
+    c.innerHTML='<span class="stamp">Prueba 0'+state.evidence.length+'</span>'+
+      '<h4>'+card.title+'</h4>'+
+      '<div class="v">'+card.v+'<small>'+(card.vsmall||'')+'</small></div>'+
+      '<p>'+card.p+'</p>';
+    nbList.appendChild(c);
+    nbList.scrollTop=nbList.scrollHeight; nbList.scrollLeft=nbList.scrollWidth;
+    updateCount();
+  }
+  function updateCount(){ nbCount.textContent=state.evidence.length+' / 4 recogidas'; }
+
+  /* ---------------- Headline choice ---------------- */
+  function showChoice(sc){
+    const c=sc.choice;
+    dlg.innerHTML=
+      '<div class="dtext">'+
+        '<div class="speaker narr"><span class="dot"></span>Tu decisión</div>'+
+        '<p class="line narr" style="margin-bottom:12px">'+c.prompt+'</p>'+
+        '<div class="choices" id="choices">'+
+          c.options.map((o,idx)=>'<button class="choice" data-i="'+idx+'">'+o.text+'”</button>').join('')+
+        '</div>'+
+      '</div>';
+    $("#choices").querySelectorAll('.choice').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const o=c.options[+btn.dataset.i];
+        state.headline=o.text;
+        confirmChoice(o);
+      });
+    });
+  }
+
+  function confirmChoice(o){
+    const reply = o.best
+      ? 'Ese es el titular. Refleja todo lo que encontraste sin exagerar. Lo llevamos a portada.'
+      : 'Es un titular… pero no recoge lo que tu propia investigación demostró. Vamos con uno más fiel a los hechos.';
+    if(!o.best) state.headline = SCENES[6].choice.options[0].text; // publish the accurate one
+    dlg.innerHTML=
+      faceHTML({who:"Editor"})+
+      '<div class="dtext">'+
+        '<div>'+
+          '<div class="speaker"><span class="dot"></span>Editor</div>'+
+          '<p class="line">'+reply+'</p>'+
+        '</div>'+
+        '<div class="controls"><span class="hint">La edición de mañana ya está en imprenta</span>'+
+        '<button class="next" id="publishBtn">Publicar portada ▸</button></div>'+
+      '</div>';
+    $("#publishBtn").addEventListener('click',finish);
+  }
+
+  /* ---------------- End screen ---------------- */
+  function finish(){
+    state.i=SCENES.length;
+    const headline = state.headline || SCENES[6].choice.options[0].text;
+    const today = new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'});
+    end.innerHTML=
+      '<div class="endwrap">'+
+        '<article class="frontpage" aria-label="Portada publicada">'+
+          '<div class="fp-name">El Vigía de Piura</div>'+
+          '<div class="fp-meta"><span>Año I · Edición especial</span><span>Centro de Piura</span><span>'+today+'</span></div>'+
+          '<div class="fp-kicker">Investigación · Obras públicas</div>'+
+          '<h1 class="fp-headline">'+headline+'</h1>'+
+          '<div class="fp-by">Por Lucía · Equipo de Investigación</div>'+
+          '<div class="fp-cols">'+
+            '<p>La construcción del estanque de tormentas bajo la Plaza Tres Culturas, presentada como solución a las inundaciones del centro de Piura, atraviesa serios problemas de costo, plazos y gestión.</p>'+
+            '<p>El presupuesto pasó de S/ 18.7 millones en 2023 a S/ 69 millones en 2024. Pese a ello, hasta abril de 2026 el avance real era de apenas 10.48 %, cuando debía llegar al 91 %.</p>'+
+            '<p>A la demora se suman riesgos técnicos: la napa freática a 3.60 m frente a una excavación de 9 m, que obliga a bombear agua de forma constante.</p>'+
+            '<p>Los vecinos también alertan por el retiro de árboles patrimoniales de hasta 100 años, cuya reposición no garantiza el mismo valor histórico ni ambiental.</p>'+
+          '</div>'+
+        '</article>'+
+        '<div class="art" style="width:100%;max-width:520px;border-radius:3px;overflow:hidden;height:170px;flex:none;border:1px solid rgba(244,234,210,.12)">'+artHTML('vecinos')+'</div>'+
+        '<div class="endnote">'+
+          '<p class="em">Al día siguiente, los vecinos leen tu portada en la plaza. La historia ya es de todos.</p>'+
+          '<p class="small">Fin de la experiencia · Reuniste '+state.evidence.length+' de 4 pruebas</p>'+
+        '</div>'+
+        '<div class="end-actions">'+
+          '<button class="btn" id="menuBtn">Volver al menú ▸</button>'+
+        '</div>'+
+        '<div class="countdown" id="cd"></div>'+
+      '</div>';
+    show(end);
+    $("#menuBtn").addEventListener('click',backToMenu);
+    $("#menuBtn").focus();
+    // auto-redirect to menu after a while
+    let t=25; const cd=$("#cd");
+    cd.textContent='Volverás al menú en '+t+' s';
+    redirectTimer=setInterval(()=>{
+      t--; cd.textContent='Volverás al menú en '+t+' s';
+      if(t<=0){clearInterval(redirectTimer);redirectTimer=null;backToMenu();}
+    },1000);
+  }
+
+  /* ---------------- Input ---------------- */
+  $("#startBtn").addEventListener('click',startGame);
+  // tap on dialogue area advances (but not on buttons/choices)
+  dlg.addEventListener('click',(e)=>{
+    if(e.target.closest('.next')||e.target.closest('.choice'))return;
+    if(!document.getElementById('clip'))return; // only advance during a dialogue line
+    if(!play.classList.contains('hidden')) advance();
+  });
+  document.addEventListener('keydown',(e)=>{
+    if(play.classList.contains('hidden'))return;
+    if(document.querySelector('.overlay'))return;
+    if(document.getElementById('choices'))return;
+    if(e.code==='Space'||e.code==='Enter'){e.preventDefault();advance();}
+  });
+
+})();
+</script>
+</body>
+</html>
