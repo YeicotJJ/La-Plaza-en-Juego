@@ -42,7 +42,7 @@
     justify-content:center;
     padding:clamp(12px,3vw,32px);
   }
-  .screen{width:100%;max-width:1080px;height:100%;display:flex;flex-direction:column}
+  .screen{width:100%;height:100%;display:flex;flex-direction:column}
   .hidden{display:none!important}
 
   /* ---------- background texture ---------- */
@@ -85,9 +85,9 @@
   .pip.done{color:var(--ink);background:var(--gold);border-color:var(--gold)}
   .pip.active{color:var(--paper);background:var(--red);border-color:var(--red)}
 
-  .scene{flex:1;display:flex;flex-direction:column;background:var(--ink-2);border:1px solid rgba(244,234,210,.12);
+  .scene{flex:1;position:relative;display:flex;flex-direction:column;background:var(--ink-2);border:1px solid rgba(244,234,210,.12);
     border-radius:3px;overflow:hidden;min-height:0;box-shadow:0 24px 60px -30px rgba(0,0,0,.7)}
-  .art{position:relative;flex:1;min-height:120px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;
+  .art{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;
     background:linear-gradient(180deg,var(--ink-3),var(--ink-2))}
   .art svg{width:100%;height:100%;display:block}
   .art-fallback{position:absolute;inset:0;z-index:1}
@@ -96,8 +96,11 @@
   .place-tag{position:absolute;top:12px;left:12px;z-index:3;font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;
     text-transform:uppercase;background:rgba(19,32,43,.82);color:var(--gold);padding:5px 10px;border:1px solid rgba(216,162,58,.4)}
 
-  .dialogue{background:var(--paper);color:var(--ink);padding:clamp(16px,2.6vw,26px);min-height:170px;
-    display:flex;flex-direction:row;align-items:flex-start;gap:clamp(14px,2vw,20px);position:relative}
+  .dialogue{position:absolute;left:0;right:0;bottom:0;z-index:6;background:var(--paper);color:var(--ink);
+    padding:clamp(16px,2.6vw,26px);min-height:170px;
+    display:flex;flex-direction:row;align-items:flex-start;gap:clamp(14px,2vw,20px);
+    transform:translateY(102%);transition:transform .28s cubic-bezier(.2,.9,.3,1);box-shadow:0 -20px 40px -24px rgba(0,0,0,.8)}
+  .dialogue.show{transform:none}
   .dialogue:before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
     background:repeating-linear-gradient(90deg,var(--red) 0 18px,transparent 18px 24px)}
   .dtext{flex:1;min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
@@ -134,7 +137,7 @@
   .choice:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 
   /* ---------- notebook rail ---------- */
-  .notebook{width:248px;flex-shrink:0;display:flex;flex-direction:column;background:var(--ink-2);
+  .notebook{order:1;width:25vw;height: 100%;display:flex;flex-direction:column;background:var(--ink-2);
     border:1px solid rgba(244,234,210,.12);border-radius:3px;overflow:hidden}
   .nb-head{padding:13px 15px;border-bottom:1px solid rgba(244,234,210,.12)}
   .nb-head h3{font-family:var(--display);font-weight:600;font-size:1.1rem;color:var(--paper)}
@@ -177,8 +180,8 @@
   .fact-foot{padding:0 24px 24px;display:flex;justify-content:flex-end}
 
   /* ---------- END ---------- */
-  #end{justify-content:center;align-items:center;overflow-y:auto;padding-block:20px}
-  .endwrap{width:100%;max-width:680px;display:flex;flex-direction:column;align-items:center;gap:22px;margin:auto}
+  #end{justify-content:flex-start;align-items:center;overflow-y:auto;padding-block:clamp(18px,4vh,46px)}
+  .endwrap{width:100%;max-width:680px;display:flex;flex-direction:column;align-items:center;gap:22px;margin:0 auto}
   .frontpage{width:100%;background:var(--paper);color:var(--ink);padding:clamp(20px,4vw,40px);
     box-shadow:0 40px 90px -30px #000;animation:rise .6s cubic-bezier(.2,1,.3,1);border-radius:2px}
   .fp-name{font-family:var(--display);font-weight:900;font-size:clamp(1.8rem,6vw,3rem);text-align:center;
@@ -198,12 +201,88 @@
   .endnote .small{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;color:var(--paper-2);margin-top:10px;line-height:1.7}
   .end-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
   .countdown{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .end-illus{position:relative;width:100%;height:170px;flex:none;border-radius:3px;overflow:hidden;
+    border:1px solid rgba(244,234,210,.12);background:linear-gradient(180deg,var(--ink-3),var(--ink-2))}
+
+  /* ---------- MAP / OVERWORLD ---------- */
+  .map-layer{position:absolute;inset:0;z-index:4;overflow:hidden}
+  .map-tint{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 30%,transparent 55%,rgba(8,14,19,.45));pointer-events:none}
+  /* clean placeholder shown on the map until the user adds a PNG scenario.
+     Top half = pared (backdrop), bottom half = suelo caminable. */
+  .room-ph{position:absolute;inset:0;background:linear-gradient(180deg,#16242f 0%,var(--ink-3) 50%)}
+  .room-ph .ph-floor{position:absolute;left:0;right:0;bottom:0;height:50%;border-top:2px solid var(--phc);
+    background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 60%)}
+  .room-ph .ph-floor:after{content:"";position:absolute;inset:0;background:var(--phc);opacity:.12}
+  .room-ph .ph-floor:before{content:"";position:absolute;left:0;right:0;top:0;height:14px;
+    background:linear-gradient(180deg,rgba(0,0,0,.25),transparent)}
+  .room-ph .ph-tag{position:absolute;left:50%;top:24%;transform:translate(-50%,-50%);text-align:center;width:86%;
+    font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,234,210,.42);line-height:1.7}
+  .room-ph .ph-tag small{display:block;margin-top:6px;font-size:.6rem;letter-spacing:.06em;text-transform:none;
+    color:var(--phc);filter:brightness(1.4);opacity:.95}
+  .ent{position:absolute;transform:translate(-50%,-100%);transform-origin:bottom center;will-change:left,top}
+  .ent .shadow{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:64%;height:14px;
+    background:radial-gradient(closest-side,rgba(0,0,0,.5),transparent);border-radius:50%;z-index:-1}
+  /* player */
+  .player{position:absolute;transform:translate(-50%,-100%);background-repeat:no-repeat;image-rendering:pixelated;z-index:5}
+  .player.walk.anim-bob{animation:bob .42s steps(2) infinite}
+  @keyframes bob{0%,100%{transform:translate(-50%,-100%)}50%{transform:translate(-50%,calc(-100% - 5px))}}
+  .player .fb{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center}
+  .player .fb svg{width:100%;height:100%;overflow:visible}
+  /* npc */
+  .npc{cursor:default}
+  .npc .body{width: 100%;height:100%;object-fit:cover;display:block}
+  .npc .ring{width:100%;height:100%;border-radius:50%;border:3px solid var(--paper);overflow:hidden;background:var(--ink-3);
+    box-shadow:0 6px 16px -6px rgba(0,0,0,.6)}
+  .npc .ring img{width:100%;height:100%;object-fit:cover}
+  .npc .ring .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-weight:900;color:var(--gold);font-size:1.5rem}
+  /* object marker (newspaper / pc / etc) */
+  .obj{width:54px;height:54px;display:flex;align-items:center;justify-content:center;border-radius:6px;
+    background:rgba(19,32,43,.72);border:1px solid rgba(216,162,58,.5);box-shadow:0 8px 20px -8px rgba(0,0,0,.7)}
+  .obj svg{width:34px;height:34px}
+  .objimg{height:100%;width:auto;display:block;object-fit:contain;image-rendering:auto;
+    }
+  /* active highlight + floating prompt */
+  .marker{transition:filter .2s}
+  .marker.active{filter:drop-shadow(0 0 0 var(--gold))}
+  .marker.active:after{content:"";position:absolute;left:50%;top:-12px;transform:translateX(-50%);
+    width:10px;height:10px;background:var(--gold);clip-path:polygon(50% 100%,0 0,100% 0);animation:nudge 1s ease-in-out infinite}
+  @keyframes nudge{0%,100%{top:-12px}50%{top:-18px}}
+  .marker.done{opacity:.55;filter:grayscale(.5)}
+  .prompt{position:absolute;transform:translate(-50%,-100%);z-index:8;background:var(--ink);color:var(--paper);
+    font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;padding:7px 11px;border:1px solid var(--gold);
+    white-space:nowrap;border-radius:3px;pointer-events:none;animation:fade .2s ease}
+  .prompt b{color:var(--gold)}
+  .prompt:after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);
+    border-left:7px solid transparent;border-right:7px solid transparent;border-top:7px solid var(--gold)}
+  /* exit door */
+  .exit{width:52px;height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#3a2c1c,#241a10);border:2px solid var(--gold);border-radius:4px 4px 2px 2px;
+    box-shadow:0 0 22px -4px rgba(216,162,58,.6)}
+  .exit svg{width:30px;height:30px}
+  .exit .lab{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;color:var(--gold);margin-top:2px;text-transform:uppercase}
+  /* HUD */
+  .hud{position:absolute;top:12px;right:12px;z-index:7;display:flex;gap:6px;font-family:var(--mono);
+    font-size:.56rem;letter-spacing:.08em;color:var(--paper-2);background:rgba(19,32,43,.72);
+    border:1px solid rgba(244,234,210,.18);padding:6px 10px;text-transform:uppercase;align-items:center}
+  .hud kbd{background:var(--paper);color:var(--ink);border-radius:2px;padding:1px 5px;font-weight:700;font-size:.58rem}
+  /* touch controls */
+  .touch{position:absolute;inset:0;z-index:9;pointer-events:none}
+  .dpad{position:absolute;left:14px;bottom:14px;width:128px;height:128px;pointer-events:auto;opacity:.92}
+  .dpad button{position:absolute;width:42px;height:42px;border:none;background:rgba(19,32,43,.8);color:var(--paper);
+    border:1px solid rgba(244,234,210,.25);font-size:1rem;border-radius:7px;display:flex;align-items:center;justify-content:center;touch-action:none}
+  .dpad .up{left:43px;top:0}.dpad .down{left:43px;bottom:0}.dpad .left{left:0;top:43px}.dpad .right{right:0;top:43px}
+  .actbtn{position:absolute;right:16px;bottom:24px;width:74px;height:74px;border-radius:50%;pointer-events:auto;
+    background:var(--red);color:var(--paper);border:3px solid var(--paper);font-family:var(--mono);font-weight:700;
+    font-size:.8rem;letter-spacing:.04em;box-shadow:0 10px 24px -8px rgba(0,0,0,.7);touch-action:none}
+  body:not(.touch-on) .touch{display:none}
+  @media (hover:hover) and (pointer:fine){ .touch{display:none!important} }
 
   @media (max-width:760px){
     #play{flex-direction:column;gap:12px}
-    .notebook{width:100%;max-height:34vh;order:2}
-    .stage-col{order:1;flex:none}
-    .scene{min-height:46vh}
+    .notebook{order:2;width:100%;height:auto;max-height:30vh}
+    .stage-col{order:1;flex:none;width:100%}
+    .scene{min-height:50vh}
     .nb-list{flex-direction:row;overflow-x:auto;overflow-y:hidden}
     .card{min-width:200px}
     .fp-cols{column-count:1}
@@ -231,7 +310,8 @@
     <div class="dossier">
       <div class="brief">
         MISIÓN: investigar el <b>estanque de tormentas</b> que se construye bajo la plaza.
-        Avanza por <b>6 niveles</b>, recoge <b>4 pruebas</b> en tu cuaderno y publica la portada.
+        Muévete con <b>WASD o las flechas</b>, acércate a las personas y pulsa <b>E</b> (o espacio) para hablar.
+        Recoge <b>4 pruebas</b> en tu cuaderno y publica la portada.
       </div>
       <button class="btn" id="startBtn">Comenzar investigación ▸</button>
     </div>
@@ -243,7 +323,21 @@
     <div class="stage-col">
       <div class="progress" id="progress" aria-label="Progreso de niveles"></div>
       <div class="scene">
-        <div class="art" id="art"><span class="place-tag" id="placeTag"></span></div>
+        <div class="art" id="art">
+          <span class="place-tag" id="placeTag"></span>
+          <div class="map-layer" id="mapLayer"></div>
+          <div class="map-tint" aria-hidden="true"></div>
+          <div class="hud" id="hud"><span><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> mover</span><span><kbd>E</kbd> interactuar</span></div>
+          <div class="touch" id="touch" aria-hidden="true">
+            <div class="dpad">
+              <button class="up" data-key="arrowup">▲</button>
+              <button class="left" data-key="arrowleft">◀</button>
+              <button class="right" data-key="arrowright">▶</button>
+              <button class="down" data-key="arrowdown">▼</button>
+            </div>
+            <button class="actbtn" id="actBtn">E</button>
+          </div>
+        </div>
         <div class="dialogue" id="dialogue"></div>
       </div>
     </div>
@@ -296,7 +390,45 @@
       "vecino1":     "src/img/caras/vecino1.png",       // vecino del Nivel 4 (napa freática)
       "vecino2":     "src/img/caras/vecino2.png"        // vecino del Nivel 5 (árboles)
       // El Narrador y el "Periódico" no muestran rostro (no son personas).
-    }
+    },
+
+    /* ----- SPRITES DE LA REPORTERA (para moverse por el mapa) -----
+       Pon aquí tus PNG. Lo más fácil: 4 imágenes, una por dirección.
+       - frames: nº de cuadros por imagen. 1 = imagen fija; >1 = tira HORIZONTAL
+         (ej. una imagen de 4 cuadros de caminata, puestos en fila).
+       - height: alto del personaje en pantalla (px). El ancho se calcula solo.
+       Si falta una imagen, se dibuja una reportera de respaldo (no se rompe). */
+    sprites: {
+      height: 76,
+      frames: 1,
+      fps: 6,
+      down:  "src/img/sprites/lucia_abajo.png",
+      up:    "src/img/sprites/lucia_arriba.png",
+      left:  "src/img/sprites/lucia_izquierda.png",
+      right: "src/img/sprites/lucia_derecha.png"
+    },
+
+    /* ----- SPRITES DE LOS PERSONAJES EN EL MAPA (opcional) -----
+       Imagen de cuerpo entero (PNG con fondo transparente) para cada NPC.
+       Si no la pones, se usa el rostro de "caras" en un marco; si tampoco,
+       un muñeco dibujado con su inicial. */
+    npcSprites: {
+      "Editor":      "src/img/sprites/editor.png",
+      "Comerciante": "src/img/sprites/comerciante.png",
+      "vecino1":     "src/img/sprites/vecino1.png",
+      "vecino2":     "src/img/sprites/vecino2.png"
+    },
+    spriteHeightNpc: 88,  // alto en pantalla de los NPC (px)
+
+    /* ----- IMÁGENES DE LOS OBJETOS INTERACTUABLES (opcional) -----
+       El periódico, la computadora y la puerta de salida. PNG con fondo
+       transparente, apoyado en el suelo. Si no la pones, se dibuja un ícono. */
+    objetos: {
+      news: "src/img/objetos/periodico.png",     // el periódico (Nivel 1)
+      pc:   "src/img/objetos/computadora.png",    // la PC (Nivel 2)
+      door: "src/img/objetos/salida.png"          // la puerta de salida
+    },
+    objHeight: 70        // alto en pantalla de los objetos (px)
   };
 
   /* ---------------- SVG scene art ---------------- */
@@ -456,14 +588,77 @@
     }
   ];
 
+  /* ---------------- ROOMS (mapa explorable) ----------------
+     Cada sala usa un fondo (escenario) y coloca a la reportera, a las personas/objetos
+     con los que habla, y una salida. Las posiciones son fracciones 0..1 del área.
+     Los "targets" enlazan a un índice de SCENES (la conversación que dispara). */
+  const ROOMS = [
+    { name:"Sala de redacción", bg:"redaccion", spawn:{x:.22,y:.82}, exit:{x:.90,y:.72},
+      targets:[ {scene:0, kind:"npc", who:"Editor",      x:.70,y:.62, prompt:"Hablar con el editor"} ] },
+
+    { name:"Tu oficina", bg:"oficina", spawn:{x:.18,y:.82}, exit:{x:.90,y:.72},
+      targets:[ {scene:1, kind:"obj", icon:"news", x:.46,y:.64, prompt:"Leer el periódico"},
+                {scene:2, kind:"obj", icon:"pc",   x:.74,y:.62, prompt:"Investigar en la PC"} ] },
+
+    { name:"La obra · Plaza Tres Culturas", bg:"obra", spawn:{x:.16,y:.84}, exit:{x:.91,y:.74},
+      targets:[ {scene:3, kind:"npc", who:"Comerciante", x:.44,y:.66, prompt:"Hablar con el comerciante"},
+                {scene:4, kind:"npc", who:"Vecino", face:"vecino1", x:.74,y:.62, prompt:"Hablar con el vecino"} ] },
+
+    { name:"La plaza y los árboles", bg:"plaza", spawn:{x:.18,y:.84}, exit:{x:.90,y:.72},
+      targets:[ {scene:5, kind:"npc", who:"Vecino", face:"vecino2", x:.66,y:.64, prompt:"Hablar con el vecino"} ] },
+
+    { name:"De vuelta en la redacción", bg:"redaccion", spawn:{x:.18,y:.82}, exit:null,
+      targets:[ {scene:6, kind:"npc", who:"Editor", x:.70,y:.62, prompt:"Entregar la investigación"} ] }
+  ];
+
+  /* ---------------- Map icons ---------------- */
+  const ICONS = {
+    news:'<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="1.5" fill="#f4ead2" stroke="#b8362a" stroke-width="1.5"/><rect x="6" y="7" width="8" height="3" fill="#13202b"/><rect x="6" y="12" width="12" height="1.5" fill="#7d8896"/><rect x="6" y="15" width="12" height="1.5" fill="#7d8896"/><rect x="15" y="7" width="3" height="3" fill="#2f7e83"/></svg>',
+    pc:'<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="1.5" fill="#0f1a22" stroke="#d8a23a" stroke-width="1.5"/><rect x="5.5" y="6.5" width="9" height="2" fill="#2f7e83"/><rect x="5.5" y="10" width="13" height="1.5" fill="#395866"/><rect x="9" y="16" width="6" height="3" fill="#27445a"/><rect x="7" y="19" width="10" height="1.6" rx=".8" fill="#1d2f3e"/></svg>',
+    door:'<svg viewBox="0 0 24 24" fill="none"><path d="M14 21V3H6v18" stroke="#d8a23a" stroke-width="1.6" fill="none"/><path d="M14 3l4 2v14l-4 2" fill="#241a10" stroke="#d8a23a" stroke-width="1.4"/><circle cx="9" cy="12" r="1" fill="#d8a23a"/><path d="M3 21h18" stroke="#d8a23a" stroke-width="1.4"/></svg>'
+  };
+  // little drawn reporter (fallback player) facing down
+  const PLAYER_FB = '<svg viewBox="0 0 40 60"><ellipse cx="20" cy="57" rx="11" ry="3" fill="#000" opacity=".25"/><rect x="11" y="30" width="18" height="22" rx="5" fill="#b8362a"/><rect x="13" y="34" width="14" height="9" rx="1" fill="#f4ead2"/><rect x="15" y="36" width="10" height="2" fill="#13202b"/><circle cx="20" cy="16" r="11" fill="#e8c39a"/><path d="M9 15a11 11 0 0122 0c0-7-4-12-11-12S9 8 9 15z" fill="#2a1c12"/><circle cx="16" cy="16" r="1.4" fill="#13202b"/><circle cx="24" cy="16" r="1.4" fill="#13202b"/><rect x="6" y="40" width="6" height="3" rx="1.5" fill="#e8c39a"/><rect x="28" y="40" width="6" height="3" rx="1.5" fill="#e8c39a"/></svg>';
+  // drawn NPC fallback (generic person) — coloured by accent
+  function npcFB(initial,accent){
+    return '<svg viewBox="0 0 40 64"><ellipse cx="20" cy="61" rx="11" ry="3" fill="#000" opacity=".25"/>'+
+      '<rect x="10" y="32" width="20" height="26" rx="6" fill="'+accent+'"/>'+
+      '<circle cx="20" cy="18" r="12" fill="#e8c39a"/>'+
+      '<path d="M8 18a12 12 0 0124 0c0-8-5-13-12-13S8 10 8 18z" fill="#3a2c1c"/>'+
+      '<circle cx="16" cy="18" r="1.5" fill="#13202b"/><circle cx="24" cy="18" r="1.5" fill="#13202b"/>'+
+      '<text x="20" y="50" font-family="Fraunces,serif" font-size="11" font-weight="900" fill="#fff" text-anchor="middle">'+initial+'</text></svg>';
+  }
+
   /* ---------------- State ---------------- */
-  const state = { i:0, j:0, evidence:[], headline:null };
+  const state = { i:0, j:0, evidence:[], headline:null, done:new Set(), room:0, mode:'menu', activeTarget:null, exitActive:false };
   let typing = false, typeTimer = null, redirectTimer = null;
 
   const $ = (s)=>document.querySelector(s);
   const menu=$("#menu"), play=$("#play"), end=$("#end");
   const artEl=$("#art"), placeTag=$("#placeTag"), dlg=$("#dialogue");
+  const mapLayer=$("#mapLayer"), hud=$("#hud"), touch=$("#touch");
   const progress=$("#progress"), nbList=$("#nbList"), nbCount=$("#nbCount"), nbEmpty=$("#nbEmpty");
+
+  /* ---------------- Map engine state ---------------- */
+  const SPEED = 0.42;          // fracción de ancho por segundo
+  const INTERACT_PX = 96;      // radio de interacción en px
+  const WALK_TOP = 0.56;       // los pies del personaje no suben más que esto (la mitad superior es pared)
+  const WALK_BOTTOM = 0.93;    // ni bajan más que esto
+  const WALK_LEFT = 0.06, WALK_RIGHT = 0.94;
+  const keys = {};
+  const player = { x:.2, y:.66, dir:'down', moving:false, frame:0, frameT:0 };
+  let playerEl=null, promptEl=null;
+  const spriteNat = {};
+  const spriteOK = {};
+  ['down','up','left','right'].forEach(d=>{
+    const src=CONFIG.sprites[d];
+    if(!src){spriteOK[d]=false;return;}
+    const im=new Image();
+    im.onload=()=>{ spriteNat[d]={w:im.naturalWidth,h:im.naturalHeight}; spriteOK[d]=true; if(playerEl)applyPlayerVisual(); };
+    im.onerror=()=>{ spriteOK[d]=false; };
+    im.src=src;
+  });
+
 
   /* ---------------- Navigation ---------------- */
   function show(screen){
@@ -472,15 +667,20 @@
   }
 
   function startGame(){
-    state.i=0; state.j=0; state.evidence=[]; state.headline=null;
+    state.i=0; state.j=0; state.evidence=[]; state.headline=null; state.done=new Set();
     nbList.innerHTML=''; nbList.appendChild(nbEmpty); nbEmpty.style.display='';
     updateCount();
     show(play);
-    renderScene();
+    hideDialogue();
+    enterRoom(0);
+    startLoop();
   }
 
   function backToMenu(){
     if(redirectTimer){clearInterval(redirectTimer);redirectTimer=null;}
+    stopLoop();
+    state.mode='menu';
+    for(const k in keys) keys[k]=false;
     show(menu);
     $("#startBtn").focus();
   }
@@ -488,27 +688,295 @@
   /* ---------------- Progress pips ---------------- */
   function renderProgress(){
     progress.innerHTML='';
+    const completed=state.done.size;
     SCENES.forEach((sc,idx)=>{
       const p=document.createElement('span');
-      p.className='pip'+(idx<state.i?' done':idx===state.i?' active':'');
+      p.className='pip'+(state.done.has(idx)?' done':idx===completed?' active':'');
       p.textContent=sc.level;
       progress.appendChild(p);
     });
     const pub=document.createElement('span');
-    pub.className='pip'+(state.i>=SCENES.length?' done':'');
+    pub.className='pip'+(state.done.size>=SCENES.length?' done':'');
     pub.textContent='PORTADA';
     progress.appendChild(pub);
   }
 
-  /* ---------------- Scene rendering ---------------- */
-  function renderScene(){
-    const sc=SCENES[state.i];
-    if(!sc){return finish();}
+  /* ---------------- Rooms & markers ---------------- */
+  /* map background: the user's PNG; if missing, a clean labelled placeholder (not the wide illustration, which would stretch in the map view) */
+  const SCENE_ACCENT = { redaccion:"#2f7e83", oficina:"#d8a23a", research:"#3f7fae", obra:"#b8362a", plaza:"#3f8f5a", vecinos:"#2f7e83" };
+  function roomBgHTML(key){
+    const src=CONFIG.escenarios[key]||'';
+    const accent=SCENE_ACCENT[key]||"#2f7e83";
+    const path=src||('src/img/escenarios/'+key+'.png');
+    const ph='<div class="art-fallback room-ph" style="--phc:'+accent+'">'+
+        '<div class="ph-floor"></div>'+
+        '<div class="ph-tag">Coloca tu escenario aquí<small>'+path+'</small></div>'+
+      '</div>';
+    const img=src?'<img class="art-img" alt="" src="'+src+'" onerror="this.classList.add(\'failed\')">':'';
+    return ph+img;
+  }
+
+  function enterRoom(idx){
+    state.room=idx;
+    const room=ROOMS[idx];
+    // background (PNG with clean placeholder fallback) + reset map layer
+    const bgHTML = roomBgHTML(room.bg);
+    // keep place tag node; rebuild art content but preserve overlay nodes
+    artEl.querySelectorAll('.art-fallback,.art-img').forEach(n=>n.remove());
+    artEl.insertAdjacentHTML('afterbegin', bgHTML);
+    placeTag.textContent=room.name;
+    // spawn player
+    player.x=room.spawn.x; player.y=room.spawn.y; player.dir='down'; player.moving=false; player.frame=0;
+    buildMarkers();
+    buildPlayer();
+    refreshRoomState();
     renderProgress();
-    artEl.innerHTML=artHTML(sc.art);
-    placeTag.textContent=sc.place;
-    artEl.appendChild(placeTag);
+    state.mode='map';
+  }
+
+  function buildMarkers(){
+    const room=ROOMS[state.room];
+    mapLayer.innerHTML='';
+    // targets
+    room.targets.forEach((t,k)=>{
+      const el=document.createElement('div');
+      el.className='ent marker '+(t.kind==='npc'?'npc':'');
+      el.style.left=(t.x*100)+'%'; el.style.top=(t.y*100)+'%';
+      el.dataset.k=k;
+      if(t.kind==='npc'){
+        const h=CONFIG.spriteHeightNpc||88;
+        el.style.height=h+'px'; el.style.width=Math.round(h*0.66)+'px';
+        el.innerHTML='<div class="shadow"></div>';
+        setNpcVisual(el,t);
+      } else {
+        setObjVisual(el,t);
+      }
+      mapLayer.appendChild(el);
+    });
+    // exit
+    if(room.exit){
+      const ex=document.createElement('div');
+      ex.className='ent marker exit-ent'; ex.dataset.exit='1';
+      ex.style.left=(room.exit.x*100)+'%'; ex.style.top=(room.exit.y*100)+'%';
+      const doorSrc=(CONFIG.objetos&&CONFIG.objetos.door)||'';
+      const drawDoor=()=>{ ex.style.height=''; ex.style.width=''; ex.innerHTML='<div class="shadow"></div><div class="exit">'+ICONS.door+'<span class="lab">Salir</span></div>'; };
+      if(doorSrc){
+        const h=(CONFIG.objHeight||70)+6;
+        ex.style.height=h+'px';
+        ex.innerHTML='<div class="shadow"></div>';
+        const im=new Image(); im.className='objimg'; im.alt='Salir'; im.src=doorSrc; im.onerror=drawDoor;
+        ex.appendChild(im);
+      } else { drawDoor(); }
+      mapLayer.appendChild(ex);
+    }
+    // prompt bubble (hidden until near)
+    promptEl=document.createElement('div'); promptEl.className='prompt'; promptEl.style.display='none';
+    mapLayer.appendChild(promptEl);
+  }
+
+  function npcAccent(key,who){
+    if(who==='Editor') return '#27445a';
+    if(/vecino2/.test(key)) return '#2f6e4a';
+    if(/vecino/.test(key)) return '#2f7e83';
+    return '#b8362a';
+  }
+
+  // NPC look with graceful fallback chain: body sprite -> face photo (ring) -> drawn figure
+  function setNpcVisual(el,t){
+    const key=t.face||t.who;
+    const sprite=CONFIG.npcSprites[key]||'';
+    const cara=CONFIG.caras[key]||'';
+    const ini=(t.who.trim()[0]||'?').toUpperCase();
+    const accent=npcAccent(key,t.who);
+    const holder=document.createElement('div');
+    holder.style.cssText='position:absolute;inset:0';
+    el.appendChild(holder);
+
+    function drawFallback(){ holder.innerHTML=npcFB(ini,accent); }
+    function drawCaraRing(){
+      holder.innerHTML='<div class="ring" style="width:100%;padding-bottom:100%;height:0;position:relative;top:6%">'+
+        '<div class="ini" style="position:absolute;inset:0">'+ini+'</div></div>';
+      const ring=holder.querySelector('.ring');
+      const im=new Image(); im.alt=t.who; im.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
+      im.onerror=drawFallback;
+      im.onload=()=>{ const ph=ring.querySelector('.ini'); if(ph)ph.remove(); ring.appendChild(im); };
+      im.src=cara;
+    }
+    if(sprite){
+      const im=new Image(); im.className='body'; im.alt=t.who; im.src=sprite;
+      im.onerror=()=>{ if(cara) drawCaraRing(); else drawFallback(); };
+      holder.appendChild(im);
+    } else if(cara){ drawCaraRing(); }
+    else { drawFallback(); }
+  }
+
+  // Interactable object look: custom image (periódico/PC/…) -> drawn icon fallback
+  function setObjVisual(el,t){
+    const src=(CONFIG.objetos&&CONFIG.objetos[t.icon])||'';
+    const icon=ICONS[t.icon]||ICONS.door;
+    function drawIcon(){ el.style.height=''; el.style.width=''; el.innerHTML='<div class="shadow"></div><div class="obj">'+icon+'</div>'; }
+    if(src){
+      el.style.height=(CONFIG.objHeight||70)+'px';
+      const im=new Image(); im.className='objimg'; im.alt=t.prompt||'objeto'; im.src=src; im.onerror=drawIcon;
+      el.appendChild(im);
+    } else { drawIcon(); }
+  }
+
+  function refreshRoomState(){
+    const room=ROOMS[state.room];
+    const pending=room.targets.filter(t=>!state.done.has(t.scene));
+    state.activeTarget = pending.length ? pending[0] : null;
+    state.exitActive = (pending.length===0) && !!room.exit;
+    // visual states
+    mapLayer.querySelectorAll('.marker[data-k]').forEach(el=>{
+      const t=room.targets[+el.dataset.k];
+      el.classList.toggle('done', state.done.has(t.scene));
+      el.classList.toggle('active', state.activeTarget && t.scene===state.activeTarget.scene);
+    });
+    const ex=mapLayer.querySelector('[data-exit]');
+    if(ex) ex.classList.toggle('active', state.exitActive);
+  }
+
+  /* ---------------- Player sprite ---------------- */
+  function buildPlayer(){
+    playerEl=document.createElement('div'); playerEl.className='player';
+    playerEl.innerHTML='<div class="shadow"></div><div class="fb">'+PLAYER_FB+'</div>';
+    mapLayer.appendChild(playerEl);
+    applyPlayerVisual();
+    positionPlayer();
+  }
+
+  function applyPlayerVisual(){
+    if(!playerEl)return;
+    const dir=player.dir, src=CONFIG.sprites[dir], nat=spriteNat[dir];
+    const H=CONFIG.sprites.height||72;
+    const frames=Math.max(1, CONFIG.sprites.frames|0);
+    const fb=playerEl.querySelector('.fb');
+    if(spriteOK[dir] && nat){
+      const cellNatW=nat.w/frames, cellNatH=nat.h, scale=H/cellNatH, cellW=cellNatW*scale;
+      playerEl.style.width=cellW+'px'; playerEl.style.height=H+'px';
+      playerEl.style.backgroundImage='url("'+src+'")';
+      playerEl.style.backgroundSize=(frames*cellW)+'px '+H+'px';
+      playerEl.style.backgroundPositionX=(-player.frame*cellW)+'px';
+      playerEl.classList.toggle('anim-bob', frames<=1); // bob solo si no hay animación de cuadros
+      if(fb)fb.style.display='none';
+    } else {
+      // fallback drawn reporter
+      playerEl.style.backgroundImage='none';
+      playerEl.style.width=Math.round(H*0.62)+'px'; playerEl.style.height=H+'px';
+      playerEl.classList.add('anim-bob');
+      if(fb){ fb.style.display='flex'; fb.style.transform = (dir==='left')?'scaleX(-1)':'none'; }
+    }
+  }
+
+  function positionPlayer(){
+    if(!playerEl)return;
+    playerEl.style.left=(player.x*100)+'%';
+    playerEl.style.top=(player.y*100)+'%';
+  }
+
+  /* ---------------- Loop & movement ---------------- */
+  let rafId=null, lastTs=0;
+  function startLoop(){ if(rafId)return; lastTs=performance.now(); rafId=requestAnimationFrame(loop); }
+  function stopLoop(){ if(rafId){cancelAnimationFrame(rafId);rafId=null;} }
+
+  function loop(ts){
+    const dt=Math.min(.05,(ts-lastTs)/2000); lastTs=ts;
+    if(state.mode==='map' && !play.classList.contains('hidden')) updateMap(dt);
+    rafId=requestAnimationFrame(loop);
+  }
+
+  function updateMap(dt){
+    let dx=0,dy=0;
+    if(keys['arrowup']||keys['w']) dy-=1;
+    if(keys['arrowdown']||keys['s']) dy+=1;
+    if(keys['arrowleft']||keys['a']) dx-=1;
+    if(keys['arrowright']||keys['d']) dx+=1;
+    const moving=(dx||dy);
+    if(moving){
+      const len=Math.hypot(dx,dy)||1; dx/=len; dy/=len;
+      const W=artEl.clientWidth||700, H=artEl.clientHeight||420;
+      player.x += dx*SPEED*dt;
+      player.y += dy*SPEED*dt*(W/H);   // corregir por aspecto para velocidad uniforme
+      player.x=Math.max(WALK_LEFT,Math.min(WALK_RIGHT,player.x));
+      player.y=Math.max(WALK_TOP,Math.min(WALK_BOTTOM,player.y));
+      const nd = Math.abs(dx)>Math.abs(dy) ? (dx>0?'right':'left') : (dy>0?'down':'up');
+      if(nd!==player.dir){ player.dir=nd; applyPlayerVisual(); }
+      // walk animation
+      player.frameT+=dt;
+      const step=1/(CONFIG.sprites.fps||6);
+      if(player.frameT>=step){ player.frameT=0; player.frame=(player.frame+1)%Math.max(1,CONFIG.sprites.frames|0); applyPlayerVisual(); }
+      playerEl.classList.add('walk');
+    } else {
+      if(player.frame!==0){ player.frame=0; applyPlayerVisual(); }
+      playerEl && playerEl.classList.remove('walk');
+    }
+    positionPlayer();
+    updatePrompt();
+  }
+
+  function targetPx(pt){
+    const W=artEl.clientWidth||700, H=artEl.clientHeight||420;
+    return { px:pt.x*W, py:pt.y*H };
+  }
+  function nearPoint(pt){
+    const W=artEl.clientWidth||700, H=artEl.clientHeight||420;
+    const dxp=(pt.x-player.x)*W, dyp=(pt.y-player.y)*H;
+    return Math.hypot(dxp,dyp) < INTERACT_PX;
+  }
+
+  function currentInteractable(){
+    const room=ROOMS[state.room];
+    if(state.activeTarget && nearPoint(state.activeTarget)) return {type:'talk', t:state.activeTarget};
+    if(state.exitActive && room.exit && nearPoint(room.exit)) return {type:'exit'};
+    return null;
+  }
+
+  function updatePrompt(){
+    const it=currentInteractable();
+    if(!it){ promptEl.style.display='none'; return; }
+    let pt, label;
+    if(it.type==='talk'){ pt=it.t; label=it.t.prompt; }
+    else { pt=ROOMS[state.room].exit; label='Ir al siguiente lugar'; }
+    promptEl.style.display='';
+    promptEl.style.left=(pt.x*100)+'%';
+    promptEl.style.top=(pt.y*100 - 10)+'%';
+    promptEl.innerHTML='<b>E</b> · '+label;
+  }
+
+  function tryInteract(){
+    if(state.mode!=='map')return;
+    const it=currentInteractable();
+    if(!it)return;
+    if(it.type==='talk') startTalk(it.t.scene);
+    else goNextRoom();
+  }
+
+  function goNextRoom(){
+    if(state.room < ROOMS.length-1){
+      artEl.style.transition='opacity .2s'; artEl.style.opacity='.0';
+      setTimeout(()=>{ enterRoom(state.room+1); artEl.style.opacity='1'; }, 200);
+    }
+  }
+
+  /* ---------------- Talk show/hide ---------------- */
+  function startTalk(sceneIndex){
+    for(const k in keys) keys[k]=false;
+    playerEl && playerEl.classList.remove('walk');
+    state.i=sceneIndex; state.j=0; state.mode='talk';
+    showDialogue();
     renderLine();
+  }
+  function showDialogue(){ dlg.classList.add('show'); }
+  function hideDialogue(){ dlg.classList.remove('show'); dlg.innerHTML=''; }
+
+  function returnToMap(){
+    state.done.add(state.i);
+    hideDialogue();
+    state.mode='map';
+    refreshRoomState();
+    renderProgress();
+    if(promptEl) promptEl.style.display='none';
   }
 
   // background: shows the PNG; if it is missing, the SVG illustration underneath shows instead
@@ -576,10 +1044,8 @@
     // last line done
     if(sc.fact){ showFact(sc); return; }
     if(sc.choice){ showChoice(sc); return; }
-    nextScene();
+    returnToMap();
   }
-
-  function nextScene(){ state.i++; state.j=0; renderScene(); }
 
   /* ---------------- Fact overlay ---------------- */
   function showFact(sc){
@@ -602,7 +1068,7 @@
     save.addEventListener('click',()=>{
       addEvidence(sc.card);
       ov.remove();
-      nextScene();
+      returnToMap();
     });
   }
 
@@ -662,6 +1128,9 @@
 
   /* ---------------- End screen ---------------- */
   function finish(){
+    state.done.add(6);
+    state.mode='end';
+    hideDialogue();
     state.i=SCENES.length;
     const headline = state.headline || SCENES[6].choice.options[0].text;
     const today = new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'});
@@ -680,7 +1149,7 @@
             '<p>Los vecinos también alertan por el retiro de árboles patrimoniales de hasta 100 años, cuya reposición no garantiza el mismo valor histórico ni ambiental.</p>'+
           '</div>'+
         '</article>'+
-        '<div class="art" style="width:100%;max-width:520px;border-radius:3px;overflow:hidden;height:170px;flex:none;border:1px solid rgba(244,234,210,.12)">'+artHTML('vecinos')+'</div>'+
+        '<div class="end-illus">'+artHTML('vecinos')+'</div>'+
         '<div class="endnote">'+
           '<p class="em">Al día siguiente, los vecinos leen tu portada en la plaza. La historia ya es de todos.</p>'+
           '<p class="small">Fin de la experiencia · Reuniste '+state.evidence.length+' de 4 pruebas</p>'+
@@ -694,7 +1163,7 @@
     $("#menuBtn").addEventListener('click',backToMenu);
     $("#menuBtn").focus();
     // auto-redirect to menu after a while
-    let t=25; const cd=$("#cd");
+    let t=10000; const cd=$("#cd");
     cd.textContent='Volverás al menú en '+t+' s';
     redirectTimer=setInterval(()=>{
       t--; cd.textContent='Volverás al menú en '+t+' s';
@@ -704,17 +1173,52 @@
 
   /* ---------------- Input ---------------- */
   $("#startBtn").addEventListener('click',startGame);
-  // tap on dialogue area advances (but not on buttons/choices)
+
+  // tap on dialogue text advances (but not on buttons/choices)
   dlg.addEventListener('click',(e)=>{
     if(e.target.closest('.next')||e.target.closest('.choice'))return;
-    if(!document.getElementById('clip'))return; // only advance during a dialogue line
-    if(!play.classList.contains('hidden')) advance();
+    if(!document.getElementById('clip'))return; // only during a dialogue line
+    if(state.mode==='talk') advance();
   });
+
+  const MOVE_KEYS=['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'];
   document.addEventListener('keydown',(e)=>{
     if(play.classList.contains('hidden'))return;
-    if(document.querySelector('.overlay'))return;
-    if(document.getElementById('choices'))return;
-    if(e.code==='Space'||e.code==='Enter'){e.preventDefault();advance();}
+    const k=e.key.toLowerCase();
+    if(state.mode==='talk'){
+      if(document.querySelector('.overlay'))return;
+      if(document.getElementById('choices'))return;
+      if(e.code==='Space'||e.code==='Enter'){ e.preventDefault(); advance(); }
+      return;
+    }
+    if(state.mode==='map'){
+      if(MOVE_KEYS.includes(k)){ keys[k]=true; e.preventDefault(); }
+      if(k==='e'||e.code==='Space'){ e.preventDefault(); tryInteract(); }
+    }
+  });
+  document.addEventListener('keyup',(e)=>{
+    const k=e.key.toLowerCase();
+    if(MOVE_KEYS.includes(k)) keys[k]=false;
+  });
+  // release keys if window loses focus (avoid "stuck" movement)
+  window.addEventListener('blur',()=>{ for(const k in keys) keys[k]=false; });
+
+  // ---- touch controls ----
+  if(window.matchMedia('(hover:none),(pointer:coarse)').matches){ document.body.classList.add('touch-on'); }
+  touch.querySelectorAll('.dpad button').forEach(b=>{
+    const key=b.dataset.key;
+    const down=(ev)=>{ ev.preventDefault(); keys[key]=true; };
+    const up=(ev)=>{ ev.preventDefault(); keys[key]=false; };
+    b.addEventListener('pointerdown',down);
+    b.addEventListener('pointerup',up);
+    b.addEventListener('pointerleave',up);
+    b.addEventListener('pointercancel',up);
+  });
+  const actBtn=$("#actBtn");
+  actBtn.addEventListener('pointerdown',(ev)=>{
+    ev.preventDefault();
+    if(state.mode==='map') tryInteract();
+    else if(state.mode==='talk' && document.getElementById('clip')) advance();
   });
 
 })();
