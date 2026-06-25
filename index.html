@@ -348,16 +348,37 @@
   .prompt:after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);
     border-left:7px solid transparent;border-right:7px solid transparent;border-top:7px solid var(--gold)}
   /* exit door */
-  .exit{width:52px;height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  .salida{
+    height: 15vh !important;
+  }
+  .exit{width:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;
     background:linear-gradient(180deg,#3a2c1c,#241a10);border:2px solid var(--gold);border-radius:4px 4px 2px 2px;
     box-shadow:0 0 22px -4px rgba(216,162,58,.6)}
-  .exit svg{width:30px;height:30px}
+  .exit svg{width:30px;}
   .exit .lab{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;color:var(--gold);margin-top:2px;text-transform:uppercase}
   /* HUD */
   .hud{position:absolute;top:12px;right:12px;z-index:7;display:flex;gap:6px;font-family:var(--mono);
     font-size:.56rem;letter-spacing:.08em;color:var(--paper-2);background:rgba(19,32,43,.72);
     border:1px solid rgba(244,234,210,.18);padding:6px 10px;text-transform:uppercase;align-items:center}
   .hud kbd{background:var(--paper);color:var(--ink);border-radius:2px;padding:1px 5px;font-weight:700;font-size:.58rem}
+  .mutebtn{background:transparent;color:var(--paper);border:1px solid rgba(244,234,210,.35);border-radius:3px;
+    width:24px;height:22px;font-size:.8rem;cursor:pointer;padding:0;line-height:1;margin-left:4px}
+  .mutebtn[aria-pressed="true"]{color:var(--gold);border-color:var(--gold);opacity:.85}
+  /* Audio settings panel */
+  .cfg-panel{position:absolute;top:46px;right:12px;z-index:11;width:260px;background:rgba(19,32,43,.96);
+    border:1px solid rgba(244,234,210,.22);border-radius:4px;padding:12px 14px;
+    box-shadow:0 18px 40px -16px #000;color:var(--paper);font-family:var(--mono)}
+  .cfg-panel.hidden{display:none}
+  .cfg-head{display:flex;justify-content:space-between;align-items:center;font-size:.66rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:10px;border-bottom:1px solid rgba(244,234,210,.14);padding-bottom:8px}
+  .cfg-x{background:transparent;border:none;color:var(--paper);cursor:pointer;font-size:.95rem;padding:0 2px;line-height:1}
+  .cfg-row{display:grid;grid-template-columns:80px 1fr 32px;align-items:center;gap:10px;margin:8px 0;font-size:.6rem;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--paper-2)}
+  .cfg-row input[type=range]{width:100%;accent-color:var(--gold)}
+  .cfg-num{font-size:.62rem;color:var(--gold);text-align:right}
+  .cfg-foot{margin-top:8px;display:flex;justify-content:flex-end}
+  .btn-sm{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+    background:var(--ink-3);color:var(--gold);border:1px solid rgba(216,162,58,.5);border-radius:3px;padding:6px 9px}
   /* touch controls */
   .touch{position:absolute;inset:0;z-index:9;pointer-events:none}
   .dpad{position:absolute;left:14px;bottom:14px;width:128px;height:128px;pointer-events:auto;opacity:.92}
@@ -419,7 +440,17 @@
           <span class="place-tag" id="placeTag"></span>
           <div class="map-layer" id="mapLayer"></div>
           <div class="map-tint" aria-hidden="true"></div>
-          <div class="hud" id="hud"><span><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> mover</span><span><kbd>E</kbd> interactuar</span></div>
+          <div class="hud" id="hud"><span><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> mover</span><span><kbd>E</kbd> interactuar</span><button id="muteBtn" class="mutebtn" title="Silenciar / activar sonido" aria-pressed="false">♪</button><button id="cfgBtn" class="mutebtn" title="Ajustes de sonido" aria-pressed="false">⚙</button></div>
+          <div id="cfgPanel" class="cfg-panel hidden" role="dialog" aria-label="Ajustes de sonido">
+            <div class="cfg-head"><span>Ajustes de sonido</span><button id="cfgClose" class="cfg-x" aria-label="Cerrar">✕</button></div>
+            <label class="cfg-row"><span>Música de fondo</span>
+              <input type="range" id="volMusic" min="0" max="100" value="100"><span class="cfg-num" id="volMusicNum">100</span></label>
+            <label class="cfg-row"><span>Efectos</span>
+              <input type="range" id="volSfx" min="0" max="100" value="100"><span class="cfg-num" id="volSfxNum">100</span></label>
+            <label class="cfg-row"><span>Voces</span>
+              <input type="range" id="volVoice" min="0" max="100" value="100"><span class="cfg-num" id="volVoiceNum">100</span></label>
+            <div class="cfg-foot"><button id="cfgTest" class="btn-sm">Probar efecto ▸</button></div>
+          </div>
           <div class="touch" id="touch" aria-hidden="true">
             <div class="dpad">
               <button class="up" data-key="arrowup">▲</button>
@@ -472,12 +503,12 @@
     escenarios: {
       // pared = imagen del fondo de arriba (horizontal). suelo = textura del piso
       // (idealmente repetible / vista desde arriba); el juego la inclina en perspectiva.
-      redaccion: { wall:"src/img/escenarios/redaccion_pared.png", floor:"src/img/escenarios/redaccion_suelo.png" }, // Misión y Nivel 6
-      oficina:   { wall:"src/img/escenarios/oficina_pared.png",   floor:"src/img/escenarios/oficina_suelo.png" },   // Nivel 1
-      research:  { wall:"src/img/escenarios/research_pared.png",  floor:"src/img/escenarios/research_suelo.png" },  // Nivel 2
-      obra:      { wall:"src/img/escenarios/obra_pared.png",      floor:"src/img/escenarios/obra_suelo.png" },       // Niveles 3 y 4
-      plaza:     { wall:"src/img/escenarios/plaza_pared.png",     floor:"src/img/escenarios/plaza_suelo.png" },      // Nivel 5
-      vecinos:   "src/img/escenarios/vecinos.png"     // Pantalla final (una sola imagen, sin dividir)
+      redaccion: { wall:"src/img/escenarios/redaccion_pared.webp", floor:"src/img/escenarios/redaccion_suelo.webp" }, // Misión y Nivel 6
+      oficina:   { wall:"src/img/escenarios/oficina_pared.webp",   floor:"src/img/escenarios/oficina_suelo.webp" },   // Nivel 1
+      research:  { wall:"src/img/escenarios/research_pared.webp",  floor:"src/img/escenarios/research_suelo.webp" },  // Nivel 2
+      obra:      { wall:"src/img/escenarios/obra_pared.webp",      floor:"src/img/escenarios/obra_suelo.webp" },       // Niveles 3 y 4
+      plaza:     { wall:"src/img/escenarios/plaza_pared.webp",     floor:"src/img/escenarios/plaza_suelo.webp" },      // Nivel 5
+      vecinos:   "src/img/escenarios/vecinos.webp"     // Pantalla final (una sola imagen, sin dividir)
     },
     // Perspectiva del suelo (puedes ajustarla):
     //   tilt   -> inclinación en grados (más = más "tumbado").
@@ -486,11 +517,11 @@
     //             false: usa la imagen completa estirada (sin repetir).
     suelo: { tilt: 62, tile: 22, repeat: true },
     caras: {
-      "Lucía":       "src/img/caras/lucia.png",        // la periodista (protagonista)
-      "Editor":      "src/img/caras/editor.png",       // el editor del diario
-      "Comerciante": "src/img/caras/comerciante.png",  // comerciante del Nivel 3
-      "vecino1":     "src/img/caras/vecino1.png",       // vecino del Nivel 4 (napa freática)
-      "vecino2":     "src/img/caras/vecino2.png"        // vecino del Nivel 5 (árboles)
+      "Lucía":       "src/img/caras/lucia.webp",        // la periodista (protagonista)
+      "Editor":      "src/img/caras/editor.webp",       // el editor del diario
+      "Comerciante": "src/img/caras/comerciante.webp",  // comerciante del Nivel 3
+      "vecino1":     "src/img/caras/vecino1.webp",       // vecino del Nivel 4 (napa freática)
+      "vecino2":     "src/img/caras/vecino2.webp"        // vecino del Nivel 5 (árboles)
       // El Narrador y el "Periódico" no muestran rostro (no son personas).
     },
 
@@ -504,10 +535,10 @@
       height: 18,   // vh  (alto del personaje en pantalla)
       frames: 1,
       fps: 6,
-      down:  "src/img/sprites/lucia_abajo.png",
-      up:    "src/img/sprites/lucia_arriba.png",
-      left:  "src/img/sprites/lucia_izquierda.png",
-      right: "src/img/sprites/lucia_derecha.png"
+      down:  "src/img/sprites/lucia_abajo.webp",
+      up:    "src/img/sprites/lucia_arriba.webp",
+      left:  "src/img/sprites/lucia_izquierda.webp",
+      right: "src/img/sprites/lucia_derecha.webp"
     },
 
     /* ----- SPRITES DE LOS PERSONAJES EN EL MAPA (opcional) -----
@@ -515,10 +546,10 @@
        Si no la pones, se usa el rostro de "caras" en un marco; si tampoco,
        un muñeco dibujado con su inicial. */
     npcSprites: {
-      "Editor":      "src/img/sprites/editor.png",
-      "Comerciante": "src/img/sprites/comerciante.png",
-      "vecino1":     "src/img/sprites/vecino1.png",
-      "vecino2":     "src/img/sprites/vecino2.png"
+      "Editor":      "src/img/sprites/editor.webp",
+      "Comerciante": "src/img/sprites/comerciante.webp",
+      "vecino1":     "src/img/sprites/vecino1.webp",
+      "vecino2":     "src/img/sprites/vecino2.webp"
     },
     spriteHeightNpc: 24,  // alto en pantalla de los NPC, en vh
 
@@ -526,9 +557,9 @@
        El periódico, la computadora y la puerta de salida. PNG con fondo
        transparente, apoyado en el suelo. Si no la pones, se dibuja un ícono. */
     objetos: {
-      news: "src/img/objetos/periodico.png",     // el periódico (Nivel 1)
-      pc:   "src/img/objetos/computadora.png",    // la PC (Nivel 2)
-      door: "src/img/objetos/salida.png"          // la puerta de salida
+      news: "src/img/objetos/periodico.webp",     // el periódico (Nivel 1)
+      pc:   "src/img/objetos/computadora.webp",    // la PC (Nivel 2)
+      door: "src/img/objetos/salida.webp"          // la puerta de salida
     },
     objHeight: 70,        // alto en pantalla de los objetos (px)
 
@@ -538,18 +569,53 @@
        la conversación. Puedes poner 1 o varias por grupo (se respeta el orden). */
     fotos: {
       periodico: [        // close-ups del periódico (Nivel 1)
-        "src/img/fotos/periodico_1.png"
+        "src/img/fotos/periodico_1.webp"
       ],
       infobras: [         // capturas de Infobras (Nivel 3)
-        "src/img/fotos/infobras_1.png",
-        "src/img/fotos/infobras_2.png"
+        "src/img/fotos/infobras_1.webp",
+        "src/img/fotos/infobras_2.webp"
       ]
     },
 
     /* ----- PORTADA FINAL (opcional) -----
        Si pones aquí tu propia portada como imagen, reemplaza al diario que se
        arma solo. Si falta, se muestra el diario generado con el titular elegido. */
-    portada: "src/img/portada.png",
+    portada: "src/img/portada.webp",
+
+    /* =====================================================================
+       AUDIO (todo opcional). Pon tus archivos MP3 y dales una ruta aquí.
+       Si dejas la ruta vacía o el archivo no existe, simplemente no suena.
+       Vol = volumen 0..1.
+       ===================================================================== */
+    audio: {
+      // Música de fondo (se pone en bucle, baja durante diálogos)
+      musica:        { src:"src/music/fondo.mp3",     vol:0.45, loop:true },
+
+      // Efectos: dispárense en distintos momentos del juego.
+      sfxFoto:       { src:"src/music/fx/camera.mp3",   vol:0.85 },  // al PASAR una foto en la galería
+      sfxAnotar:     { src:"src/music/fx/surprised.mp3", vol:0.85 },  // al ANOTAR una prueba en el cuaderno
+      sfxFinal:      { src:"src/music/fx/people.mp3",  vol:0.95 },  // cuando los vecinos leen la noticia (escena final)
+
+      /* "Voces" estilo Animal Crossing: cada letra suena con un pitch.
+         - voz.src  -> un MP3 corto (un bleep/blip de ~80-200 ms).
+                       Si lo dejas vacío, se sintetiza un beep neutral.
+         - voz.vol  -> volumen 0..1.
+         - voz.rate -> cuántos blips por segundo mientras se escribe el texto. */
+      voz:           { src:"src/music/voz.mp3", vol:0.35, rate:10 },
+
+      /* Tono por personaje (multiplicador de pitch).
+         1 = original | <1 más grave | >1 más agudo.
+         Si un personaje no aparece aquí, usa "default". */
+      tono: {
+        "default":     0.00,
+        "Lucía":       1.40,   // protagonista, voz un poco más aguda
+        "Editor":      0.50,   // hombre mayor, grave
+        "Comerciante": 0.70,
+        "Vecino":      1.20,
+        "Periódico":   0.00,   // efecto "tintineo" para texto del periódico
+        "Narrador":    0.00    // narrador grave y pausado
+      }
+    },
 
     /* ----- ALTO DE LA PARED (horizonte) -----
        Fracción del alto de pantalla que ocupa la PARED (arriba). El SUELO ocupa
@@ -566,7 +632,232 @@
     area: { bottom: 0.97, left: 0.04, right: 0.96 }
   };
 
-  /* ---------------- SVG scene art ---------------- */
+  /* =====================================================================
+     AUDIO ENGINE — música + sfx + voces tipo Animal Crossing.
+     - Música y efectos usan <audio> (funciona también si abres el HTML
+       con doble clic, sin servidor).
+     - Las voces usan WebAudio porque necesitan cambio de tono (pitch).
+     - Si un MP3 falla o falta, no rompe nada (se ignora; las voces caen
+       a un beep sintetizado para mantener el efecto).
+     ===================================================================== */
+  const Audio = (function(){
+    // Guardamos la referencia al constructor real ANTES de que algo pueda
+    // sustituir window.Audio.
+    const HTMLAudio = window.Audio;
+    // ============================================================
+    //  Música -> HTMLAudioElement (streaming en bucle)
+    //  Efectos + Voces -> WebAudio (precargados como AudioBuffer,
+    //  latencia ~0 ms y reproducción puntual).
+    // ============================================================
+    const els={};                       // música y otros HTML audios
+    const buf={};                       // src -> AudioBuffer (sfx + voz)
+    const bufFailed={};
+    let ctx=null, masterMusic=null, masterSfx=null, masterVoice=null;
+    let muted=false;
+    let vols = { music:1, sfx:1, voice:1 }; // multiplicadores 0..1
+
+    function ensureCtx(){
+      if(ctx) return ctx;
+      try{
+        const AC=window.AudioContext||window.webkitAudioContext;
+        if(!AC) return null;
+        ctx=new AC();
+        masterMusic=ctx.createGain(); masterMusic.connect(ctx.destination);
+        masterSfx=ctx.createGain();   masterSfx.connect(ctx.destination);
+        masterVoice=ctx.createGain(); masterVoice.connect(ctx.destination);
+        applyVolumes();
+      }catch(e){ ctx=null; }
+      return ctx;
+    }
+    function applyVolumes(){
+      const m = muted ? 0 : 1;
+      if(masterMusic) masterMusic.gain.value = vols.music * m;
+      if(masterSfx)   masterSfx.gain.value   = vols.sfx * m;
+      if(masterVoice) masterVoice.gain.value = vols.voice * m;
+      // música va por HTMLAudio: aplicarle volumen base × multiplicador
+      const a=els['musica'];
+      if(a){
+        const cfg=(CONFIG.audio||{}).musica||{}; const base=(cfg.vol==null?0.45:cfg.vol);
+        a.volume = Math.max(0, Math.min(1, base * vols.music * (muted?0:1) * (a.__ducked?0.35:1)));
+        a.muted = muted;
+      }
+      // pool SFX HTMLAudio: aplica mute (el volumen se calcula al disparar)
+      Object.keys(sfxPool||{}).forEach(k=>{
+        (sfxPool[k]||[]).forEach(x=>{ x.muted=muted; });
+      });
+    }
+    function setMuted(v){ muted=!!v; applyVolumes(); }
+    function isMuted(){ return muted; }
+    function setVolumes(v){ vols={ music:+v.music, sfx:+v.sfx, voice:+v.voice }; applyVolumes(); }
+    function getVolumes(){ return Object.assign({}, vols); }
+
+    // ---- carga (XHR -> ArrayBuffer -> decodeAudioData). Funciona en file:// y http
+    function load(src, cb){
+      if(!src){ cb(null); return; }
+      if(buf[src]){ cb(buf[src]); return; }
+      if(bufFailed[src]){ cb(null); return; }
+      if(!ensureCtx()){ cb(null); return; }
+      try{
+        const x=new XMLHttpRequest(); x.open('GET',src,true); x.responseType='arraybuffer';
+        x.onload=()=>{
+          if(x.status===0 || (x.status>=200&&x.status<300)){
+            ctx.decodeAudioData(x.response, b=>{ buf[src]=b; cb(b); }, ()=>{ bufFailed[src]=true; cb(null); });
+          } else { bufFailed[src]=true; cb(null); }
+        };
+        x.onerror=()=>{ bufFailed[src]=true; cb(null); };
+        x.send();
+      }catch(e){ bufFailed[src]=true; cb(null); }
+    }
+    // Precarga todos los SFX y la voz al primer gesto del usuario.
+    // 2 vías paralelas:
+    //   (1) WebAudio (AudioBuffer): la mejor, latencia 0; pero XHR a file:// suele estar bloqueado en Chrome.
+    //   (2) HTMLAudio en pool: 4 copias por efecto, precargadas. SÍ funciona en file://.
+    // Si (1) ya tiene el buffer, gana; si no, cae a (2). Si (2) tampoco, beep sintético.
+    const sfxPool={};                  // key -> array de HTMLAudioElement listos
+    const SFX_POOL_SIZE=4;
+    function buildSfxPool(key){
+      const cfg=(CONFIG.audio||{})[key]; if(!cfg||!cfg.src){ sfxPool[key]=[]; return; }
+      const list=[];
+      for(let i=0;i<SFX_POOL_SIZE;i++){
+        const a=new HTMLAudio();
+        a.preload='auto'; a.src=cfg.src;
+        a.volume=Math.max(0,Math.min(1, cfg.vol==null?1:cfg.vol));
+        a.addEventListener('error',()=>{ a.__failed=true; });
+        list.push(a);
+      }
+      sfxPool[key]=list;
+    }
+    let preloadStarted=false;
+    function preloadAll(){
+      if(preloadStarted) return; preloadStarted=true;
+      ensureCtx();
+      if(ctx && ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} }
+      ['sfxFoto','sfxAnotar','sfxFinal'].forEach(k=>{
+        buildSfxPool(k);                     // pool HTMLAudio (fallback robusto)
+        const cfg=(CONFIG.audio||{})[k]; if(cfg && cfg.src) load(cfg.src, ()=>{});  // WebAudio buffer
+      });
+      const vz=(CONFIG.audio||{}).voz; if(vz && vz.src) load(vz.src, ()=>{});
+    }
+
+    // ---- Música (HTMLAudioElement: streaming en bucle) ----
+    function startMusic(){
+      const cfg=(CONFIG.audio||{}).musica; if(!cfg||!cfg.src) return;
+      let a=els['musica'];
+      if(!a){
+        a=new HTMLAudio();
+        a.preload='auto'; a.src=cfg.src; a.loop=true;
+        a.addEventListener('error',()=>{ a.__failed=true; });
+        els['musica']=a;
+      }
+      applyVolumes();
+      const p=a.play(); if(p&&p.catch) p.catch(()=>{}); // si falla autoplay, no rompe
+    }
+    function stopMusic(){
+      const a=els['musica']; if(!a) return;
+      try{ a.pause(); a.currentTime=0; }catch(e){}
+    }
+    function duckMusic(on){
+      const a=els['musica']; if(!a) return;
+      a.__ducked=!!on; applyVolumes();
+    }
+
+    // ---- SFX (WebAudio si está listo, si no HTMLAudio pool, si no beep) ----
+    function sfx(key){
+      ensureCtx();
+      if(ctx && ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} }
+      const cfg=(CONFIG.audio||{})[key];
+      if(!cfg||!cfg.src){ synthBeep(key); return; }
+      // (1) WebAudio AudioBuffer (cero latencia)
+      const b=buf[cfg.src];
+      if(b && ctx){ playBuffer(b, cfg.vol==null?1:cfg.vol, masterSfx, 1); return; }
+      // (2) HTMLAudio pool (funciona en file://)
+      const pool=sfxPool[key];
+      if(pool && pool.length){
+        // toma el primero que no esté reproduciendo (o reinicia el siguiente)
+        let a=null;
+        for(let i=0;i<pool.length;i++){
+          const x=pool[i];
+          if(x.__failed) continue;
+          if(x.paused || x.ended){ a=x; break; }
+        }
+        if(!a){ a=pool[0]; if(a.__failed) a=null; }
+        if(a){
+          try{
+            a.currentTime=0;
+            a.volume=Math.max(0,Math.min(1, (cfg.vol==null?1:cfg.vol) * vols.sfx * (muted?0:1)));
+            const p=a.play();
+            if(p && p.catch) p.catch(()=>synthBeep(key));
+            return;
+          }catch(e){}
+        }
+      }
+      // (3) síntesis (último recurso)
+      synthBeep(key);
+      // intenta cargar para próximas veces
+      load(cfg.src, ()=>{});
+    }
+    function playBuffer(b, vol, master, rate){
+      try{
+        const s=ctx.createBufferSource(); s.buffer=b; s.playbackRate.value=rate||1;
+        const g=ctx.createGain(); g.gain.value=Math.max(0,Math.min(1,vol==null?1:vol));
+        s.connect(g); g.connect(master||masterSfx);
+        s.start(0);
+      }catch(e){}
+    }
+    function synthBeep(key){
+      if(!ensureCtx()) return;
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      const base = key==='sfxFoto' ? 1100 : key==='sfxAnotar' ? 720 : key==='sfxFinal' ? 520 : 760;
+      o.type=key==='sfxFinal'?'sine':'triangle'; o.frequency.value=base;
+      const t=ctx.currentTime;
+      g.gain.value=0; g.gain.linearRampToValueAtTime(0.25, t+0.005);
+      g.gain.exponentialRampToValueAtTime(0.001, t+(key==='sfxFinal'?0.45:0.18));
+      o.connect(g); g.connect(masterSfx);
+      o.start(t); o.stop(t+(key==='sfxFinal'?0.5:0.22));
+    }
+
+    // ---- Voces estilo Animal Crossing (pitch por personaje) ----
+    let voiceTimer=null;
+    function voiceStart(who){
+      voiceStop();
+      const cfg=(CONFIG.audio||{}).voz||{};
+      const tonos=(CONFIG.audio||{}).tono||{};
+      const pitch=(tonos[who]!=null)?tonos[who]:(tonos.default!=null?tonos.default:1);
+      if(pitch<=0) return; // 0 = silenciar este personaje
+      if(!ensureCtx()) return;
+      if(ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} }
+      const rate=Math.max(6, Math.min(40, cfg.rate||16));
+      const interval=Math.round(1000/rate);
+      function tick(){
+        const b = cfg.src ? buf[cfg.src] : null;
+        if(b){
+          const v=0.94+Math.random()*0.12;
+          playBuffer(b, cfg.vol==null?0.55:cfg.vol, masterVoice, pitch*v);
+        } else {
+          synthVoice(pitch);
+          if(cfg.src) load(cfg.src, ()=>{}); // intenta cargar para próximos blips
+        }
+      }
+      tick();
+      voiceTimer=setInterval(tick, interval);
+    }
+    function synthVoice(pitch){
+      if(!ctx) return;
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='square';
+      o.frequency.value=(520+Math.random()*180)*(pitch||1);
+      const t=ctx.currentTime;
+      g.gain.value=0;
+      g.gain.linearRampToValueAtTime(0.10, t+0.005);
+      g.gain.exponentialRampToValueAtTime(0.001, t+0.07);
+      o.connect(g); g.connect(masterVoice);
+      o.start(t); o.stop(t+0.09);
+    }
+    function voiceStop(){ if(voiceTimer){ clearInterval(voiceTimer); voiceTimer=null; } }
+
+    return { startMusic, stopMusic, duckMusic, sfx, voiceStart, voiceStop,
+             setMuted, isMuted, setVolumes, getVolumes, preloadAll };
+  })();
   function bg(){return '<rect width="700" height="420" fill="url(#sky)"/>';}
   const ART = {
     redaccion: `<svg viewBox="0 0 700 420" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
@@ -815,6 +1106,8 @@
     updateCount();
     show(play);
     hideDialogue();
+    Audio.preloadAll();   // descarga y decodifica SFX y voz YA (al gesto del usuario)
+    Audio.startMusic();   // música de fondo (en bucle)
     enterRoom(0);
     startLoop();
   }
@@ -822,6 +1115,7 @@
   function backToMenu(){
     if(redirectTimer){clearInterval(redirectTimer);redirectTimer=null;}
     stopLoop();
+    Audio.voiceStop(); Audio.stopMusic();
     state.mode='menu';
     for(const k in keys) keys[k]=false;
     show(menu);
@@ -853,7 +1147,7 @@
     // legacy: una sola imagen (string) => fondo a pantalla completa
     if(typeof sc==='string' || !sc){
       const src=(typeof sc==='string')?sc:'';
-      const path=src||('src/img/escenarios/'+key+'.png');
+      const path=src||('src/img/escenarios/'+key+'.webp');
       return '<div class="art-fallback room-ph" style="--phc:'+accent+'">'+
           '<div class="ph-floor"></div>'+
           '<div class="ph-tag">Coloca tu escenario aquí<small>'+path+'</small></div>'+
@@ -862,8 +1156,8 @@
     }
     // dividido: pared (arriba) + suelo en perspectiva (abajo)
     const wall=sc.wall||'', floor=sc.floor||'';
-    const wallPath=wall||('src/img/escenarios/'+key+'_pared.png');
-    const floorPath=floor||('src/img/escenarios/'+key+'_suelo.png');
+    const wallPath=wall||('src/img/escenarios/'+key+'_pared.webp');
+    const floorPath=floor||('src/img/escenarios/'+key+'_suelo.webp');
     const s=CONFIG.suelo||{}, tilt=(s.tilt!=null?s.tilt:62), tile=(s.tile!=null?s.tile:22), repeat=(s.repeat!==false);
     const planeStyle="background-image:url('"+floorPath+"');transform:rotateX("+tilt+"deg);"+
       (repeat ? ("background-repeat:repeat;background-size:"+/*tile*/6+"% auto;")
@@ -908,7 +1202,6 @@
       if(t.kind==='npc'){
         const h=CONFIG.spriteHeightNpc||24;   // vh
         el.style.height=h+'vh'; el.style.width=(h*0.66)+'vh';
-        el.innerHTML='<div class="shadow"></div>';
         setNpcVisual(el,t);
       } else {
         setObjVisual(el,t);
@@ -921,12 +1214,11 @@
       ex.className='ent marker exit-ent'; ex.dataset.exit='1';
       ex.style.left=(room.exit.x*100)+'%'; ex.style.top=(room.exit.y*100)+'%';
       const doorSrc=(CONFIG.objetos&&CONFIG.objetos.door)||'';
-      const drawDoor=()=>{ ex.style.height=''; ex.style.width=''; ex.innerHTML='<div class="shadow"></div><div class="exit">'+ICONS.door+'<span class="lab">Salir</span></div>'; };
+      const drawDoor=()=>{ ex.style.height=''; ex.style.width=''; ex.innerHTML='<div class="exit salida">'+ICONS.door+'<span class="lab">Salir</span></div>'; };
       if(doorSrc){
         const h=(CONFIG.objHeight||70)+6;
         ex.style.height=h+'px';
-        ex.innerHTML='<div class="shadow"></div>';
-        const im=new Image(); im.className='objimg'; im.alt='Salir'; im.src=doorSrc; im.onerror=drawDoor;
+        const im=new Image(); im.className='objimg salida'; im.alt='Salir'; im.src=doorSrc; im.onerror=drawDoor;
         ex.appendChild(im);
       } else { drawDoor(); }
       mapLayer.appendChild(ex);
@@ -976,10 +1268,9 @@
   function setObjVisual(el,t){
     const src=(CONFIG.objetos&&CONFIG.objetos[t.icon])||'';
     const icon=ICONS[t.icon]||ICONS.door;
-    function drawIcon(){ el.style.height=''; el.style.width=''; el.innerHTML='<div class="shadow"></div><div class="obj">'+icon+'</div>'; }
+    function drawIcon(){ el.style.height=''; el.style.width=''; el.innerHTML='<div class="obj">'+icon+'</div>'; }
     if(src){
       el.style.height=(CONFIG.objHeight||70)+'px';
-      el.innerHTML='<div class="shadow"></div>';
       const im=new Image(); im.className='objimg'; im.alt=t.prompt||'objeto'; im.src=src; im.onerror=drawIcon;
       el.appendChild(im);
     } else { drawIcon(); }
@@ -1003,7 +1294,7 @@
   /* ---------------- Player sprite ---------------- */
   function buildPlayer(){
     playerEl=document.createElement('div'); playerEl.className='player';
-    playerEl.innerHTML='<div class="shadow"></div><div class="fb">'+PLAYER_FB+'</div>';
+    playerEl.innerHTML='<div class="fb">'+PLAYER_FB+'</div>';
     mapLayer.appendChild(playerEl);
     applyPlayerVisual();
     positionPlayer();
@@ -1257,20 +1548,22 @@
           '<button class="next" id="nextBtn">'+(last?(sc.fact?'Anotar prueba ▸':sc.choice?'Decidir titular ▸':'Continuar ▸'):'Continuar ▸')+'</button>'+
         '</div>'+
       '</div>';
-    typeText($("#clip"), line.text);
+    typeText($("#clip"), line.text, line.who);
     $("#nextBtn").addEventListener('click', advance);
   }
 
-  function typeText(node,text){
+  function typeText(node,text,who){
     if(typeTimer)clearInterval(typeTimer);
     typing=true; node.textContent='';
+    Audio.duckMusic(true);
+    Audio.voiceStart(who||'default');
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-      node.textContent=text; typing=false; return;
+      node.textContent=text; typing=false; Audio.voiceStop(); Audio.duckMusic(false); return;
     }
     let k=0;
     typeTimer=setInterval(()=>{
       node.textContent=text.slice(0,++k);
-      if(k>=text.length){clearInterval(typeTimer);typing=false;}
+      if(k>=text.length){clearInterval(typeTimer);typing=false; Audio.voiceStop(); Audio.duckMusic(false);}
     },16);
   }
 
@@ -1278,7 +1571,7 @@
     const sc=SCENES[state.i];
     const node=$("#clip");
     if(typing && node){ // finish typing instantly on first tap
-      clearInterval(typeTimer); node.textContent=sc.lines[state.j].text; typing=false; return;
+      clearInterval(typeTimer); node.textContent=sc.lines[state.j].text; typing=false; Audio.voiceStop(); Audio.duckMusic(false); return;
     }
     // if this line has a photo close-up not shown yet, play it first, then continue
     const line=sc.lines[state.j];
@@ -1350,6 +1643,7 @@
     }
     function swapTo(n){
       if(busy)return; busy=true;
+      Audio.sfx('sfxFoto');
       frame.classList.remove('enter'); frame.classList.add('discard');
       setTimeout(()=>{
         idx=n; render();
@@ -1437,6 +1731,7 @@
   function addEvidence(card){
     if(state.evidence.includes(card.title))return;
     state.evidence.push(card.title);
+    Audio.sfx('sfxAnotar');
     nbEmpty.style.display='none';
     const c=document.createElement('div');
     c.className='card';
@@ -1507,6 +1802,8 @@
 
   // Paso 1 — escena: Lucía ve a los vecinos leer la portada (con narración)
   function endSceneView(){
+    Audio.voiceStop(); Audio.duckMusic(false);
+    Audio.sfx('sfxFinal');
     end.innerHTML=
       '<div class="endwrap">'+
         '<div class="end-scene">'+
@@ -1589,6 +1886,43 @@
   /* ---------------- Input ---------------- */
   $("#startBtn").addEventListener('click',startGame);
   if(albumBtn) albumBtn.addEventListener('click',()=>{ openAlbum(); });
+  const muteBtn=$("#muteBtn");
+  if(muteBtn) muteBtn.addEventListener('click',()=>{
+    Audio.setMuted(!Audio.isMuted());
+    muteBtn.setAttribute('aria-pressed', Audio.isMuted()?'true':'false');
+    muteBtn.textContent = Audio.isMuted() ? '✕' : '♪';
+  });
+  // Settings panel
+  (function initCfg(){
+    const panel=$("#cfgPanel"), btn=$("#cfgBtn"), x=$("#cfgClose"), test=$("#cfgTest");
+    const m=$("#volMusic"), s=$("#volSfx"), v=$("#volVoice");
+    const mN=$("#volMusicNum"), sN=$("#volSfxNum"), vN=$("#volVoiceNum");
+    if(!panel||!btn) return;
+    let saved=null;
+    try{ saved=JSON.parse(localStorage.getItem('TLP_vols')||'null'); }catch(e){}
+    const init = saved || { music:1, sfx:1, voice:1 };
+    function paint(){
+      m.value=Math.round(init.music*100); s.value=Math.round(init.sfx*100); v.value=Math.round(init.voice*100);
+      mN.textContent=m.value; sN.textContent=s.value; vN.textContent=v.value;
+      Audio.setVolumes({music:m.value/100, sfx:s.value/100, voice:v.value/100});
+    }
+    paint();
+    function update(){
+      mN.textContent=m.value; sN.textContent=s.value; vN.textContent=v.value;
+      const vols={music:m.value/100, sfx:s.value/100, voice:v.value/100};
+      Audio.setVolumes(vols);
+      try{ localStorage.setItem('TLP_vols', JSON.stringify(vols)); }catch(e){}
+    }
+    [m,s,v].forEach(el=>el.addEventListener('input',update));
+    btn.addEventListener('click',()=>{
+      const open=panel.classList.toggle('hidden');
+      btn.setAttribute('aria-pressed', open?'false':'true');
+    });
+    x.addEventListener('click',()=>{ panel.classList.add('hidden'); btn.setAttribute('aria-pressed','false'); });
+    test.addEventListener('click',()=>{ Audio.sfx('sfxFoto'); });   // botón "probar"
+    // cerrar con Esc
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && !panel.classList.contains('hidden')){ panel.classList.add('hidden'); btn.setAttribute('aria-pressed','false'); }});
+  })();
 
   // tap on dialogue text advances (but not on buttons/choices)
   dlg.addEventListener('click',(e)=>{
