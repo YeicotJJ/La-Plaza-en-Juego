@@ -379,6 +379,23 @@
   .cfg-foot{margin-top:8px;display:flex;justify-content:flex-end}
   .btn-sm{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
     background:var(--ink-3);color:var(--gold);border:1px solid rgba(216,162,58,.5);border-radius:3px;padding:6px 9px}
+
+  /* ---------- Loading overlay (precarga de recursos) ---------- */
+  .loader{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(120% 120% at 50% 30%,#16242f,var(--ink) 70%);animation:fade .3s ease}
+  .loader.hidden{display:none}
+  .loader.out{animation:fadeOut .35s ease forwards}
+  .loader-card{width:min(92%,520px);padding:26px 28px;background:rgba(19,32,43,.92);
+    border:1px solid rgba(244,234,210,.18);border-radius:4px;color:var(--paper);
+    box-shadow:0 30px 80px -18px #000}
+  .loader-kicker{font-family:var(--mono);font-size:.62rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+  .loader-title{font-family:var(--display);font-weight:700;font-size:1.6rem;color:var(--paper);margin-bottom:14px}
+  .loader-bar{position:relative;width:100%;height:10px;background:var(--ink-3);border:1px solid rgba(244,234,210,.18);border-radius:6px;overflow:hidden}
+  .loader-fill{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width .18s ease}
+  .loader-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--paper-2);margin-top:8px}
+  .loader-meta span:first-child{color:var(--gold)}
+  .loader-file{font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:10px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}
   /* touch controls */
   .touch{position:absolute;inset:0;z-index:9;pointer-events:none}
   .dpad{position:absolute;left:14px;bottom:14px;width:128px;height:128px;pointer-events:auto;opacity:.92}
@@ -430,6 +447,17 @@
     </div>
     <div class="credit">Basado en el caso del drenaje pluvial del centro de Piura</div>
   </section>
+
+  <!-- ===================== LOADING OVERLAY ===================== -->
+  <div id="loader" class="loader hidden" role="dialog" aria-label="Cargando recursos">
+    <div class="loader-card">
+      <div class="loader-kicker">Preparando la edición</div>
+      <div class="loader-title">Cargando recursos</div>
+      <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+      <div class="loader-meta"><span id="loaderPct">0%</span><span id="loaderCount">0 / 0</span></div>
+      <div class="loader-file" id="loaderFile">Iniciando…</div>
+    </div>
+  </div>
 
   <!-- ===================== PLAY ===================== -->
   <section id="play" class="screen hidden" role="region" aria-label="Juego">
@@ -1883,8 +1911,123 @@
     },1000);
   }
 
-  /* ---------------- Input ---------------- */
-  $("#startBtn").addEventListener('click',startGame);
+  /* ---------------- Resource preloader ----------------
+     Reúne TODAS las URLs (imágenes y audios) desde CONFIG y las descarga
+     antes de empezar a jugar, mostrando una barra de progreso. Si un
+     archivo falla, no rompe nada: cuenta como "terminado" igual y el
+     juego mostrará el respaldo de esa imagen/efecto. */
+  function collectAssetUrls(){
+    const urls=new Set();
+    const add=(s)=>{ if(typeof s==='string' && s.trim()) urls.add(s.trim()); };
+    // Escenarios (pared + suelo) y final
+    const esc=CONFIG.escenarios||{};
+    Object.keys(esc).forEach(k=>{
+      const v=esc[k];
+      if(typeof v==='string') add(v);
+      else if(v){ add(v.wall); add(v.floor); }
+    });
+    // Caras
+    const car=CONFIG.caras||{}; Object.keys(car).forEach(k=>add(car[k]));
+    // Sprites jugador
+    const sp=CONFIG.sprites||{};
+    ['up','down','left','right'].forEach(k=>add(sp[k]));
+    // Sprites NPC
+    const np=CONFIG.npcSprites||{}; Object.keys(np).forEach(k=>add(np[k]));
+    // Objetos
+    const ob=CONFIG.objetos||{}; Object.keys(ob).forEach(k=>add(ob[k]));
+    // Fotos (galería)
+    const ft=CONFIG.fotos||{}; Object.keys(ft).forEach(k=>{ (ft[k]||[]).forEach(add); });
+    // Portada final
+    add(CONFIG.portada);
+    // Audio: marcamos por tipo
+    const audios=[];
+    const au=CONFIG.audio||{};
+    ['musica','sfxFoto','sfxAnotar','sfxFinal','voz'].forEach(k=>{
+      const c=au[k]; if(c && c.src) audios.push({key:k, src:c.src});
+    });
+    return { images:[...urls], audios };
+  }
+
+  function preloadImage(src){
+    return new Promise(res=>{
+      const im=new Image();
+      im.onload=()=>res({src,ok:true});
+      im.onerror=()=>res({src,ok:false});
+      im.src=src;
+    });
+  }
+  function preloadAudio(src){
+    // Usa <audio> con 'canplaythrough' (funciona en file:// y http)
+    return new Promise(res=>{
+      try{
+        const a=new (window.Audio)();
+        let done=false;
+        const finish=(ok)=>{ if(done) return; done=true; res({src,ok}); };
+        a.preload='auto';
+        a.addEventListener('canplaythrough',()=>finish(true),{once:true});
+        a.addEventListener('loadeddata',     ()=>finish(true),{once:true});
+        a.addEventListener('error',          ()=>finish(false),{once:true});
+        // límite duro para no congelar la carga si el navegador no dispara canplaythrough
+        setTimeout(()=>finish(true), 7000);
+        a.src=src;
+        a.load();
+      }catch(e){ res({src,ok:false}); }
+    });
+  }
+
+  function runLoaderAndStart(){
+    const loader=$("#loader"), fill=$("#loaderFill"), pct=$("#loaderPct"),
+          count=$("#loaderCount"), file=$("#loaderFile");
+    if(!loader){ startGame(); return; }
+    menu.classList.add('hidden');    // ocultar menú para que solo se vea el loader
+    loader.classList.remove('hidden','out');
+    // Audio: el contexto necesita un gesto de usuario; este clic ya lo es.
+    // Iniciamos también la precarga interna de Audio (AudioBuffers).
+    try{ Audio.preloadAll && Audio.preloadAll(); }catch(e){}
+
+    const { images, audios } = collectAssetUrls();
+    const tasks=[
+      ...images.map(src=>({type:'img', src})),
+      ...audios.map(a=>({type:'audio', src:a.src, key:a.key}))
+    ];
+    const total=Math.max(1, tasks.length);
+    let done=0;
+    const update=(label)=>{
+      const p=Math.round(done*100/total);
+      fill.style.width=p+'%';
+      pct.textContent=p+'%';
+      count.textContent=done+' / '+total;
+      if(label) file.textContent=label;
+    };
+    update('Preparando…');
+
+    // Lanzamos en paralelo con un cap (para no saturar el navegador)
+    const CONCURRENCY=8;
+    let i=0;
+    function nextTask(){
+      if(i>=tasks.length) return Promise.resolve();
+      const t=tasks[i++];
+      const p=(t.type==='img'?preloadImage(t.src):preloadAudio(t.src));
+      return p.then(r=>{
+        done++;
+        update((r.ok?'✓ ':'· ')+t.src);
+        return nextTask();
+      });
+    }
+    const workers=[];
+    for(let w=0; w<Math.min(CONCURRENCY,tasks.length||1); w++) workers.push(nextTask());
+
+    Promise.all(workers).then(()=>{
+      update('Listo');
+      // pequeña pausa para que el "100%" se vea, luego oculta y arranca
+      setTimeout(()=>{
+        loader.classList.add('out');
+        setTimeout(()=>{ loader.classList.add('hidden'); loader.classList.remove('out'); startGame(); }, 320);
+      }, 220);
+    });
+  }
+
+  $("#startBtn").addEventListener('click',runLoaderAndStart);
   if(albumBtn) albumBtn.addEventListener('click',()=>{ openAlbum(); });
   const muteBtn=$("#muteBtn");
   if(muteBtn) muteBtn.addEventListener('click',()=>{
