@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>La Plaza en Juego — Experiencia periodística</title>
+<title>Tras la Pista: Plaza Tres Culturas — El Caso del Estanque</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -201,36 +201,124 @@
   .endnote .small{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;color:var(--paper-2);margin-top:10px;line-height:1.7}
   .end-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
   .countdown{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
-  .end-illus{position:relative;width:100%;height:170px;flex:none;border-radius:3px;overflow:hidden;
+  .end-illus{position:relative;width:100%;max-width:520px;height:170px;flex:none;border-radius:3px;overflow:hidden;
     border:1px solid rgba(244,234,210,.12);background:linear-gradient(180deg,var(--ink-3),var(--ink-2))}
 
-  /* ---------- MAP / OVERWORLD ---------- */
+  /* ---------- photo close-up viewer ---------- */
+  .gallery{position:absolute;inset:0;z-index:20;background:rgba(8,12,16,.95);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;animation:fade .2s ease;padding:10px}
+  .gv-stage{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:100%;max-height:100%;width:100%}
+  .gv-frame{position:relative;display:flex;align-items:center;justify-content:center;width:min(97%,1180px);max-height:84vh;
+    min-width:280px;min-height:200px;border:3px solid var(--paper);border-radius:3px;overflow:hidden;background:var(--ink-3);
+    box-shadow:0 30px 80px -18px #000,0 0 0 1px rgba(216,162,58,.4)}
+  .gv-img{position:relative;z-index:1;display:block;max-width:100%;max-height:84vh;width:auto;height:auto;object-fit:contain}
+  .gv-frame.discard{animation:cardOut .26s cubic-bezier(.55,0,.85,.3) forwards}
+  .gv-frame.enter{animation:cardIn .3s cubic-bezier(.2,.9,.3,1)}
+  @keyframes cardOut{to{transform:translateX(-58%) rotate(-9deg) scale(.9);opacity:0}}
+  @keyframes cardIn{from{transform:translateX(42%) rotate(6deg) scale(.92);opacity:0}to{transform:none;opacity:1}}
+  .gv-ph{position:absolute;inset:0;z-index:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    padding:26px;text-align:center;font-family:var(--mono);font-size:.66rem;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--paper-2);
+    background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 12px,transparent 12px 24px)}
+  .gv-ph small{font-size:.62rem;letter-spacing:.05em;text-transform:none;color:var(--gold);opacity:.9}
+  .gv-bar{display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--paper-2)}
+  .gv-count{color:var(--gold)}
+  .gv-hint{opacity:.8}
+  .gv-close{position:absolute;top:12px;right:12px;z-index:3;width:38px;height:38px;border-radius:50%;cursor:pointer;
+    background:rgba(19,32,43,.85);border:1px solid var(--paper);color:var(--paper);font-size:1.1rem;line-height:1;
+    display:flex;align-items:center;justify-content:center}
+  .gv-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:46px;height:46px;border-radius:50%;cursor:pointer;
+    background:rgba(19,32,43,.8);border:1px solid rgba(244,234,210,.55);color:var(--paper);font-size:1.3rem;
+    display:flex;align-items:center;justify-content:center}
+  .gv-nav.prev{left:14px} .gv-nav.next{right:14px}
+  /* notebook photo button + album grid */
+  .nb-photos{margin-top:9px;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+    background:var(--ink-3);color:var(--gold);border:1px solid rgba(216,162,58,.5);border-radius:3px;padding:6px 10px;transition:filter .15s}
+  .nb-photos:hover:not(:disabled){filter:brightness(1.2)}
+  .nb-photos:disabled{opacity:.4;cursor:default;color:var(--muted);border-color:rgba(244,234,210,.18)}
+  .album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;width:min(96%,900px);
+    max-height:84vh;overflow-y:auto;padding:4px}
+  .album-cell{position:relative;aspect-ratio:4/3;border:2px solid var(--paper);border-radius:3px;overflow:hidden;cursor:pointer;
+    background:var(--ink-3);box-shadow:0 8px 20px -10px #000;transition:transform .12s}
+  .album-cell:hover{transform:translateY(-2px) scale(1.02)}
+  .album-cell img{width:100%;height:100%;object-fit:cover;display:block}
+  .album-cell .ac-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;
+    font-family:var(--mono);font-size:.5rem;letter-spacing:.06em;color:var(--paper-2);
+    background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 10px,transparent 10px 20px)}
+  .album-title{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+  /* portada final como imagen */
+  .portada-shell{width:100%;display:flex;justify-content:center}
+  .portada-img{height: 73vh;display:block;border-radius:2px;box-shadow:0 40px 90px -30px #000;animation:rise .6s cubic-bezier(.2,1,.3,1)}
+
+  /* ---------- travel transition (between rooms) ---------- */
+  .travel{position:absolute;inset:0;z-index:19;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;
+    background:radial-gradient(120% 120% at 50% 30%,#16242f,var(--ink) 70%);animation:fade .3s ease}
+  .travel.out{animation:fadeOut .32s ease forwards}
+  @keyframes fadeOut{to{opacity:0}}
+  .tv-inner{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center;padding:24px;max-width:90%}
+  .tv-kicker{font-family:var(--mono);font-size:.62rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold)}
+  .tv-label{font-family:var(--display);font-weight:900;font-size:clamp(1.45rem,4.6vw,2.5rem);line-height:1.12;color:var(--paper);max-width:620px}
+  .tv-label .dots:after{content:"";animation:dots 1.4s steps(4,end) infinite}
+  @keyframes dots{0%{content:""}25%{content:"·"}50%{content:"· ·"}75%{content:"· · ·"}}
+  .tv-scene{position:relative;width:min(88%,460px);height:120px;margin-top:4px}
+  .tv-car{position:absolute;left:50%;bottom:30px;width:140px;margin-left:-70px;animation:carBob .6s ease-in-out infinite;z-index:2}
+  @keyframes carBob{0%,100%{transform:translateY(0) rotate(-.4deg)}50%{transform:translateY(-4px) rotate(.4deg)}}
+  .tv-road{position:absolute;left:-10%;right:-10%;bottom:26px;height:3px;
+    background:repeating-linear-gradient(90deg,var(--gold) 0 22px,transparent 22px 48px);opacity:.75;animation:road .45s linear infinite}
+  @keyframes road{from{background-position-x:0}to{background-position-x:-48px}}
+  .tv-ground{position:absolute;left:0;right:0;bottom:0;height:30px;background:linear-gradient(180deg,rgba(47,126,131,.12),transparent)}
+  .tv-bld{position:absolute;bottom:29px;width:200%;height:60px;opacity:.22;
+    background:repeating-linear-gradient(90deg,transparent 0 26px,var(--paper-2) 26px 30px,transparent 30px 70px,var(--paper-2) 70px 76px,transparent 76px 120px);
+    animation:bld 2.2s linear infinite}
+  @keyframes bld{from{transform:translateX(0)}to{transform:translateX(-120px)}}
+  .tv-hint{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--paper-2);opacity:.75}
+
+  /* ---------- end: cinematic scene step ---------- */
+  .end-scene{width:100%;display:flex;flex-direction:column;align-items:center;gap:18px}
+  .end-scene .es-illus{position:relative;width:100%;max-width:640px;height:clamp(220px,50vh,360px);border-radius:4px;overflow:hidden;
+    border:1px solid rgba(244,234,210,.14);background:linear-gradient(180deg,var(--ink-3),var(--ink-2));box-shadow:0 30px 70px -28px #000}
+  .end-scene .es-cap{max-width:600px;text-align:center;font-family:var(--display);font-style:italic;
+    font-size:clamp(1.15rem,3vw,1.55rem);line-height:1.45;color:var(--paper)}
+  .end-recap{display:flex;flex-direction:column;gap:8px;width:100%;max-width:430px}
+  .end-recap .ri{display:flex;align-items:center;gap:10px;background:var(--ink-2);border:1px solid rgba(244,234,210,.14);
+    border-radius:3px;padding:9px 12px;font-family:var(--mono);font-size:.66rem;letter-spacing:.03em;color:var(--paper-2)}
+  .end-recap .ri:before{content:"\2713";color:var(--teal);font-weight:700}
   .map-layer{position:absolute;inset:0;z-index:4;overflow:hidden}
   .map-tint{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 30%,transparent 55%,rgba(8,14,19,.45));pointer-events:none}
   /* clean placeholder shown on the map until the user adds a PNG scenario.
      Top half = pared (backdrop), bottom half = suelo caminable. */
-  .room-ph{position:absolute;inset:0;background:linear-gradient(180deg,#16242f 0%,var(--ink-3) 50%)}
-  .room-ph .ph-floor{position:absolute;left:0;right:0;bottom:0;height:50%;border-top:2px solid var(--phc);
+  .room-ph{position:absolute;inset:0;background:linear-gradient(180deg,#16242f 0%,var(--ink-3) var(--wall,50%))}
+  .room-ph .ph-floor{position:absolute;left:0;right:0;bottom:0;height:var(--floor,50%);border-top:2px solid var(--phc);
     background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 60%)}
   .room-ph .ph-floor:after{content:"";position:absolute;inset:0;background:var(--phc);opacity:.12}
   .room-ph .ph-floor:before{content:"";position:absolute;left:0;right:0;top:0;height:14px;
     background:linear-gradient(180deg,rgba(0,0,0,.25),transparent)}
-  .room-ph .ph-tag{position:absolute;left:50%;top:24%;transform:translate(-50%,-50%);text-align:center;width:86%;
+  .room-ph .ph-tag{position:absolute;left:50%;top:calc(var(--wall,50%) * .5);transform:translate(-50%,-50%);text-align:center;width:86%;
     font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,234,210,.42);line-height:1.7}
   .room-ph .ph-tag small{display:block;margin-top:6px;font-size:.6rem;letter-spacing:.06em;text-transform:none;
     color:var(--phc);filter:brightness(1.4);opacity:.95}
+  /* fondo dividido: pared (arriba) + suelo en perspectiva (abajo) */
+  .bg-wall{position:absolute;left:0;top:0;width:100%;height:calc(var(--wall,52%) + 1%);object-fit:cover;z-index:2}
+  .bg-wall.failed{display:none}
+  .bg-floor{position:absolute;left:0;bottom:0;width:100%;height:var(--floor,48%);z-index:3;overflow:hidden;
+    perspective:300px;perspective-origin:50% 0%;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 4%,#000 100%);
+            mask-image:linear-gradient(180deg,transparent 0,#000 4%,#000 100%)}
+  .bg-plane{position:absolute;left:50%;top:0;width:300%;height:520%;margin-left:-150%;
+    transform-origin:50% 0%;backface-visibility:hidden;will-change:transform}
   .ent{position:absolute;transform:translate(-50%,-100%);transform-origin:bottom center;will-change:left,top}
   .ent .shadow{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:64%;height:14px;
     background:radial-gradient(closest-side,rgba(0,0,0,.5),transparent);border-radius:50%;z-index:-1}
-  /* player */
-  .player{position:absolute;transform:translate(-50%,-100%);background-repeat:no-repeat;image-rendering:pixelated;z-index:5}
+  /* player — siempre POR DELANTE de los demás (siempre visible) */
+  .player{position:absolute;transform:translate(-50%,-100%);background-repeat:no-repeat;image-rendering:pixelated;z-index:6; height: 24vh;}
   .player.walk.anim-bob{animation:bob .42s steps(2) infinite}
   @keyframes bob{0%,100%{transform:translate(-50%,-100%)}50%{transform:translate(-50%,calc(-100% - 5px))}}
   .player .fb{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center}
   .player .fb svg{width:100%;height:100%;overflow:visible}
   /* npc */
   .npc{cursor:default}
-  .npc .body{width: 100%;height:100%;object-fit:cover;display:block}
+  .npc .body{    height: 100%;transform: translateX(-1.5vw);object-fit:contain;display:block}
   .npc .ring{width:100%;height:100%;border-radius:50%;border:3px solid var(--paper);overflow:hidden;background:var(--ink-3);
     box-shadow:0 6px 16px -6px rgba(0,0,0,.6)}
   .npc .ring img{width:100%;height:100%;object-fit:cover}
@@ -240,10 +328,14 @@
   .obj{width:54px;height:54px;display:flex;align-items:center;justify-content:center;border-radius:6px;
     background:rgba(19,32,43,.72);border:1px solid rgba(216,162,58,.5);box-shadow:0 8px 20px -8px rgba(0,0,0,.7)}
   .obj svg{width:34px;height:34px}
-  .objimg{height:100%;width:auto;display:block;object-fit:contain;image-rendering:auto;
-    }
+  .objimg{height: 24vh;
+    display: block;
+    object-fit: contain;
+    image-rendering: auto;
+    translate: 0 -13vh;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45));}
   /* active highlight + floating prompt */
-  .marker{transition:filter .2s}
+  .marker{transition:filter .2s;z-index:3}
   .marker.active{filter:drop-shadow(0 0 0 var(--gold))}
   .marker.active:after{content:"";position:absolute;left:50%;top:-12px;transform:translateX(-50%);
     width:10px;height:10px;background:var(--gold);clip-path:polygon(50% 100%,0 0,100% 0);animation:nudge 1s ease-in-out infinite}
@@ -304,8 +396,8 @@
       <div class="ed">Edición especial<br>Centro de Piura</div>
       <div class="ed r">Investigación<br>en curso</div>
     </div>
-    <div class="kicker">Experiencia periodística</div>
-    <h1 class="title">La Plaza<br><em>en Juego</em></h1>
+    <div class="kicker">Plaza Tres Culturas · Experiencia periodística</div>
+    <h1 class="title">Tras la Pista<br><em>El Caso del Estanque</em></h1>
     <p class="subtitle">Eres Lucía, periodista. Una obra bajo la Plaza Tres Culturas no es lo que parece. Recorre la ciudad, entrevista a sus vecinos y arma la historia.</p>
     <div class="dossier">
       <div class="brief">
@@ -345,6 +437,7 @@
       <div class="nb-head">
         <h3>Cuaderno de pruebas</h3>
         <div class="count" id="nbCount">0 / 4 recogidas</div>
+        <button class="nb-photos" id="albumBtn" disabled>Ver fotos · <span id="albumCount">0</span></button>
       </div>
       <div class="nb-list" id="nbList">
         <div class="nb-empty" id="nbEmpty">Las pruebas que descubras aparecerán aquí, selladas como evidencia.</div>
@@ -369,20 +462,29 @@
      (o las iniciales del personaje), así que nunca se ve roto.
 
        la-plaza-en-juego.html
-       escenarios/   -> fondos de cada lugar  (PNG horizontal, ideal 1280x800)
+       escenarios/   -> CADA lugar tiene 2 imágenes: pared (mitad de arriba) y
+                        suelo (mitad de abajo, que se muestra en perspectiva).
        caras/        -> rostros de personajes (PNG cuadrado, ideal 400x400)
 
      Para cambiar una ruta o nombre, edita el valor de texto correspondiente.
      ========================================================================= */
   const CONFIG = {
     escenarios: {
-      redaccion: "src/img/escenarios/redaccion.png", // Misión y Nivel 6 (sala de redacción)
-      oficina:   "src/img/escenarios/oficina.png",   // Nivel 1 (tu oficina con el periódico)
-      research:  "src/img/escenarios/research.png",  // Nivel 2 (investigando documentos en la PC)
-      obra:      "src/img/escenarios/obra.png",       // Niveles 3 y 4 (la obra de la plaza)
-      plaza:     "src/img/escenarios/plaza.png",      // Nivel 5 (la plaza y los árboles)
-      vecinos:   "src/img/escenarios/vecinos.png"     // Pantalla final (vecinos leyendo la noticia)
+      // pared = imagen del fondo de arriba (horizontal). suelo = textura del piso
+      // (idealmente repetible / vista desde arriba); el juego la inclina en perspectiva.
+      redaccion: { wall:"src/img/escenarios/redaccion_pared.png", floor:"src/img/escenarios/redaccion_suelo.png" }, // Misión y Nivel 6
+      oficina:   { wall:"src/img/escenarios/oficina_pared.png",   floor:"src/img/escenarios/oficina_suelo.png" },   // Nivel 1
+      research:  { wall:"src/img/escenarios/research_pared.png",  floor:"src/img/escenarios/research_suelo.png" },  // Nivel 2
+      obra:      { wall:"src/img/escenarios/obra_pared.png",      floor:"src/img/escenarios/obra_suelo.png" },       // Niveles 3 y 4
+      plaza:     { wall:"src/img/escenarios/plaza_pared.png",     floor:"src/img/escenarios/plaza_suelo.png" },      // Nivel 5
+      vecinos:   "src/img/escenarios/vecinos.png"     // Pantalla final (una sola imagen, sin dividir)
     },
+    // Perspectiva del suelo (puedes ajustarla):
+    //   tilt   -> inclinación en grados (más = más "tumbado").
+    //   tile   -> tamaño de la textura en % (más chico = se repite más veces).
+    //   repeat -> true: repite la textura (ideal para baldosas/tierra);
+    //             false: usa la imagen completa estirada (sin repetir).
+    suelo: { tilt: 62, tile: 22, repeat: true },
     caras: {
       "Lucía":       "src/img/caras/lucia.png",        // la periodista (protagonista)
       "Editor":      "src/img/caras/editor.png",       // el editor del diario
@@ -396,10 +498,10 @@
        Pon aquí tus PNG. Lo más fácil: 4 imágenes, una por dirección.
        - frames: nº de cuadros por imagen. 1 = imagen fija; >1 = tira HORIZONTAL
          (ej. una imagen de 4 cuadros de caminata, puestos en fila).
-       - height: alto del personaje en pantalla (px). El ancho se calcula solo.
+       - height: alto del personaje en pantalla, en vh (24 = 24% del alto de la ventana). El ancho se calcula solo.
        Si falta una imagen, se dibuja una reportera de respaldo (no se rompe). */
     sprites: {
-      height: 76,
+      height: 18,   // vh  (alto del personaje en pantalla)
       frames: 1,
       fps: 6,
       down:  "src/img/sprites/lucia_abajo.png",
@@ -418,7 +520,7 @@
       "vecino1":     "src/img/sprites/vecino1.png",
       "vecino2":     "src/img/sprites/vecino2.png"
     },
-    spriteHeightNpc: 88,  // alto en pantalla de los NPC (px)
+    spriteHeightNpc: 24,  // alto en pantalla de los NPC, en vh
 
     /* ----- IMÁGENES DE LOS OBJETOS INTERACTUABLES (opcional) -----
        El periódico, la computadora y la puerta de salida. PNG con fondo
@@ -428,7 +530,40 @@
       pc:   "src/img/objetos/computadora.png",    // la PC (Nivel 2)
       door: "src/img/objetos/salida.png"          // la puerta de salida
     },
-    objHeight: 70        // alto en pantalla de los objetos (px)
+    objHeight: 70,        // alto en pantalla de los objetos (px)
+
+    /* ----- FOTOS / CLOSE-UPS (opcional) -----
+       Grupos de fotos que se muestran a pantalla completa en ciertos momentos
+       del diálogo. Pasas de una a otra con clic; al terminar se cierra y sigue
+       la conversación. Puedes poner 1 o varias por grupo (se respeta el orden). */
+    fotos: {
+      periodico: [        // close-ups del periódico (Nivel 1)
+        "src/img/fotos/periodico_1.png"
+      ],
+      infobras: [         // capturas de Infobras (Nivel 3)
+        "src/img/fotos/infobras_1.png",
+        "src/img/fotos/infobras_2.png"
+      ]
+    },
+
+    /* ----- PORTADA FINAL (opcional) -----
+       Si pones aquí tu propia portada como imagen, reemplaza al diario que se
+       arma solo. Si falta, se muestra el diario generado con el titular elegido. */
+    portada: "src/img/portada.png",
+
+    /* ----- ALTO DE LA PARED (horizonte) -----
+       Fracción del alto de pantalla que ocupa la PARED (arriba). El SUELO ocupa
+       el resto, abajo. 0.70 = pared 70% / suelo 30%.
+       La colisión del personaje se ajusta sola a este valor: solo camina por el
+       suelo (de aquí hacia abajo). */
+    horizon: 0.80,
+
+    /* ----- ÁREA CAMINABLE (editable) -----
+       Límites de movimiento (fracciones: 0 = borde, 1 = borde opuesto).
+       El límite de ARRIBA toma por defecto el valor de "horizon" (la base de la
+       pared). Si quieres forzar otro, agrega aquí "top: 0.xx".
+         bottom -> límite de abajo.   left / right -> límites laterales. */
+    area: { bottom: 0.97, left: 0.04, right: 0.96 }
   };
 
   /* ---------------- SVG scene art ---------------- */
@@ -508,7 +643,7 @@
         {who:"Lucía",text:"Cuente con ello. Empezaré por revisar de qué se trata esa obra."}
     ]},
     { level:"NIVEL 1", place:"Tu oficina", art:"oficina", lines:[
-        N("En tu oficina encuentras un periódico sobre el escritorio."),
+        {who:"narr",text:"En tu oficina encuentras un periódico sobre el escritorio. Lo revisas de cerca.",gallery:"periodico"},
         {who:"Periódico",text:"La Plaza Tres Culturas es uno de los puntos más bajos del centro de Piura, donde se acumulan las aguas de lluvia de varios sectores de la ciudad."},
         {who:"Periódico",text:"Ante el problema, la Municipalidad Provincial de Piura propone construir un estanque de tormentas bajo la plaza para reducir las inundaciones."},
         {who:"Lucía",text:"Suena razonable… pero quiero ver los números. Voy a entrar a internet."}
@@ -531,7 +666,7 @@
         {who:"Comerciante",text:"La verdad, señorita, avanza muy lento. Hay días en que casi no vemos movimiento y la obra sigue sin terminar."},
         {who:"Lucía",text:"¿Considera que los trabajos han durado más de lo esperado?"},
         {who:"Comerciante",text:"Sí, bastante más. Nos dijeron que avanzaría rápido, pero ya pasó mucho tiempo y seguimos igual."},
-        {who:"Lucía",text:"Voy a revisar los registros oficiales en Infobras para verificar el estado real del proyecto."}
+        {who:"Lucía",text:"Voy a revisar los registros oficiales en Infobras para verificar el estado real del proyecto.",gallery:"infobras"}
       ], fact:{
         n:"02", title:"Más del 80 % de retraso",
         data:[{num:"10.48 %",lab:"Avance real · abr 2026"},{num:"91 %",lab:"Avance esperado"}],
@@ -573,6 +708,7 @@
     { level:"NIVEL 6", place:"De vuelta en la redacción", art:"redaccion", lines:[
         N("Regresas a la redacción después de tu investigación en la Plaza Tres Culturas."),
         {who:"Editor",text:"¿Y bien, Lucía? ¿Qué descubriste en la investigación?"},
+        N("- Lucía le entrega los documentos a su editor -"),
         {who:"Lucía",text:"Es un caso más complejo de lo que parecía. La obra pasó de 18 millones a más de 70 millones de soles, con constantes modificaciones en el diseño."},
         {who:"Editor",text:"Entonces, ¿cuál es tu conclusión?"},
         {who:"Lucía",text:"Que no es solo una obra de drenaje. Es un proyecto complejo, con problemas técnicos, ambientales y de gestión que aún no se han resuelto."},
@@ -593,22 +729,22 @@
      con los que habla, y una salida. Las posiciones son fracciones 0..1 del área.
      Los "targets" enlazan a un índice de SCENES (la conversación que dispara). */
   const ROOMS = [
-    { name:"Sala de redacción", bg:"redaccion", spawn:{x:.22,y:.82}, exit:{x:.90,y:.72},
-      targets:[ {scene:0, kind:"npc", who:"Editor",      x:.70,y:.62, prompt:"Hablar con el editor"} ] },
+    { name:"Sala de redacción", bg:"redaccion", spawn:{x:.20,y:.94}, exit:{x:.91,y:.91},
+      targets:[ {scene:0, kind:"npc", who:"Editor",      x:.66,y:.87, prompt:"Hablar con el editor"} ] },
 
-    { name:"Tu oficina", bg:"oficina", spawn:{x:.18,y:.82}, exit:{x:.90,y:.72},
-      targets:[ {scene:1, kind:"obj", icon:"news", x:.46,y:.64, prompt:"Leer el periódico"},
-                {scene:2, kind:"obj", icon:"pc",   x:.74,y:.62, prompt:"Investigar en la PC"} ] },
+    { name:"Tu oficina", bg:"oficina", travel:"Camino a tu oficina", spawn:{x:.16,y:.94}, exit:{x:.91,y:.91},
+      targets:[ {scene:1, kind:"obj", icon:"news", x:.42,y:.88, prompt:"Leer el periódico"},
+                {scene:2, kind:"obj", icon:"pc",   x:.66,y:.87, prompt:"Investigar en la PC"} ] },
 
-    { name:"La obra · Plaza Tres Culturas", bg:"obra", spawn:{x:.16,y:.84}, exit:{x:.91,y:.74},
-      targets:[ {scene:3, kind:"npc", who:"Comerciante", x:.44,y:.66, prompt:"Hablar con el comerciante"},
-                {scene:4, kind:"npc", who:"Vecino", face:"vecino1", x:.74,y:.62, prompt:"Hablar con el vecino"} ] },
+    { name:"La obra · Plaza Tres Culturas", bg:"obra", travel:"Conduciendo a la Plaza Tres Culturas", spawn:{x:.14,y:.95}, exit:{x:.92,y:.92},
+      targets:[ {scene:3, kind:"npc", who:"Comerciante", x:.40,y:.88, prompt:"Hablar con el comerciante"},
+                {scene:4, kind:"npc", who:"Vecino", face:"vecino1", x:.64,y:.87, prompt:"Hablar con el vecino"} ] },
 
-    { name:"La plaza y los árboles", bg:"plaza", spawn:{x:.18,y:.84}, exit:{x:.90,y:.72},
-      targets:[ {scene:5, kind:"npc", who:"Vecino", face:"vecino2", x:.66,y:.64, prompt:"Hablar con el vecino"} ] },
+    { name:"La plaza y los árboles", bg:"plaza", travel:"Cruzando la plaza hacia los árboles", spawn:{x:.16,y:.95}, exit:{x:.91,y:.91},
+      targets:[ {scene:5, kind:"npc", who:"Vecino", face:"vecino2", x:.60,y:.87, prompt:"Hablar con el vecino"} ] },
 
-    { name:"De vuelta en la redacción", bg:"redaccion", spawn:{x:.18,y:.82}, exit:null,
-      targets:[ {scene:6, kind:"npc", who:"Editor", x:.70,y:.62, prompt:"Entregar la investigación"} ] }
+    { name:"De vuelta en la redacción", bg:"redaccion", travel:"De regreso a la redacción", spawn:{x:.16,y:.94}, exit:null,
+      targets:[ {scene:6, kind:"npc", who:"Editor", x:.66,y:.87, prompt:"Entregar la investigación"} ] }
   ];
 
   /* ---------------- Map icons ---------------- */
@@ -630,7 +766,7 @@
   }
 
   /* ---------------- State ---------------- */
-  const state = { i:0, j:0, evidence:[], headline:null, done:new Set(), room:0, mode:'menu', activeTarget:null, exitActive:false };
+  const state = { i:0, j:0, evidence:[], headline:null, done:new Set(), room:0, mode:'menu', activeTarget:null, exitActive:false, galleryOpen:false, _galLine:-1, _galNext:null, album:[], _travelGo:null };
   let typing = false, typeTimer = null, redirectTimer = null;
 
   const $ = (s)=>document.querySelector(s);
@@ -638,13 +774,19 @@
   const artEl=$("#art"), placeTag=$("#placeTag"), dlg=$("#dialogue");
   const mapLayer=$("#mapLayer"), hud=$("#hud"), touch=$("#touch");
   const progress=$("#progress"), nbList=$("#nbList"), nbCount=$("#nbCount"), nbEmpty=$("#nbEmpty");
+  const albumBtn=$("#albumBtn"), albumCount=$("#albumCount");
 
   /* ---------------- Map engine state ---------------- */
   const SPEED = 0.42;          // fracción de ancho por segundo
   const INTERACT_PX = 96;      // radio de interacción en px
-  const WALK_TOP = 0.56;       // los pies del personaje no suben más que esto (la mitad superior es pared)
-  const WALK_BOTTOM = 0.93;    // ni bajan más que esto
-  const WALK_LEFT = 0.06, WALK_RIGHT = 0.94;
+  const HORIZON = (typeof CONFIG.horizon==='number') ? CONFIG.horizon : 0.70;  // alto de la pared (fracción)
+  // exponer pared/suelo a CSS
+  artEl.style.setProperty('--wall',  (HORIZON*100)+'%');
+  artEl.style.setProperty('--floor', ((1-HORIZON)*100)+'%');
+  function areaVal(k,d){ return (CONFIG.area && typeof CONFIG.area[k]==='number') ? CONFIG.area[k] : d; }
+  const WALK_TOP    = areaVal('top',    HORIZON);   // los pies no suben más que la base de la pared (solo camina por el suelo)
+  const WALK_BOTTOM = areaVal('bottom', 0.97);      // ni bajan más que esto
+  const WALK_LEFT   = areaVal('left',   0.04), WALK_RIGHT = areaVal('right', 0.96);
   const keys = {};
   const player = { x:.2, y:.66, dir:'down', moving:false, frame:0, frameT:0 };
   let playerEl=null, promptEl=null;
@@ -668,6 +810,7 @@
 
   function startGame(){
     state.i=0; state.j=0; state.evidence=[]; state.headline=null; state.done=new Set();
+    state.album=[]; state.galleryOpen=false; updateAlbumBtn();
     nbList.innerHTML=''; nbList.appendChild(nbEmpty); nbEmpty.style.display='';
     updateCount();
     show(play);
@@ -705,15 +848,33 @@
   /* map background: the user's PNG; if missing, a clean labelled placeholder (not the wide illustration, which would stretch in the map view) */
   const SCENE_ACCENT = { redaccion:"#2f7e83", oficina:"#d8a23a", research:"#3f7fae", obra:"#b8362a", plaza:"#3f8f5a", vecinos:"#2f7e83" };
   function roomBgHTML(key){
-    const src=CONFIG.escenarios[key]||'';
+    const sc=CONFIG.escenarios[key];
     const accent=SCENE_ACCENT[key]||"#2f7e83";
-    const path=src||('src/img/escenarios/'+key+'.png');
-    const ph='<div class="art-fallback room-ph" style="--phc:'+accent+'">'+
+    // legacy: una sola imagen (string) => fondo a pantalla completa
+    if(typeof sc==='string' || !sc){
+      const src=(typeof sc==='string')?sc:'';
+      const path=src||('src/img/escenarios/'+key+'.png');
+      return '<div class="art-fallback room-ph" style="--phc:'+accent+'">'+
+          '<div class="ph-floor"></div>'+
+          '<div class="ph-tag">Coloca tu escenario aquí<small>'+path+'</small></div>'+
+        '</div>'+
+        (src?'<img class="art-img" alt="" src="'+src+'" onerror="this.classList.add(\'failed\')">':'');
+    }
+    // dividido: pared (arriba) + suelo en perspectiva (abajo)
+    const wall=sc.wall||'', floor=sc.floor||'';
+    const wallPath=wall||('src/img/escenarios/'+key+'_pared.png');
+    const floorPath=floor||('src/img/escenarios/'+key+'_suelo.png');
+    const s=CONFIG.suelo||{}, tilt=(s.tilt!=null?s.tilt:62), tile=(s.tile!=null?s.tile:22), repeat=(s.repeat!==false);
+    const planeStyle="background-image:url('"+floorPath+"');transform:rotateX("+tilt+"deg);"+
+      (repeat ? ("background-repeat:repeat;background-size:"+/*tile*/6+"% auto;")
+              : ("background-repeat:no-repeat;background-size:100% 100%;"));
+    return ''+
+      '<div class="art-fallback room-ph" style="--phc:'+accent+'">'+
         '<div class="ph-floor"></div>'+
-        '<div class="ph-tag">Aquí va un escenario<small>'+path+'</small></div>'+
-      '</div>';
-    const img=src?'<img class="art-img" alt="" src="'+src+'" onerror="this.classList.add(\'failed\')">':'';
-    return ph+img;
+        '<div class="ph-tag">Coloca pared y suelo<small>'+wallPath+'</small><small>'+floorPath+'</small></div>'+
+      '</div>'+
+      (wall?'<img class="bg-wall" alt="" src="'+wall+'" onerror="this.classList.add(\'failed\')">':'')+
+      (floor?'<div class="bg-floor"><div class="bg-plane" style="'+planeStyle+'"></div></div>':'');
   }
 
   function enterRoom(idx){
@@ -722,11 +883,12 @@
     // background (PNG with clean placeholder fallback) + reset map layer
     const bgHTML = roomBgHTML(room.bg);
     // keep place tag node; rebuild art content but preserve overlay nodes
-    artEl.querySelectorAll('.art-fallback,.art-img').forEach(n=>n.remove());
+    artEl.querySelectorAll('.art-fallback,.art-img,.bg-wall,.bg-floor').forEach(n=>n.remove());
     artEl.insertAdjacentHTML('afterbegin', bgHTML);
     placeTag.textContent=room.name;
     // spawn player
     player.x=room.spawn.x; player.y=room.spawn.y; player.dir='down'; player.moving=false; player.frame=0;
+    player.y=Math.max(playerTopLimit(artEl.clientHeight||663), Math.min(WALK_BOTTOM, player.y));
     buildMarkers();
     buildPlayer();
     refreshRoomState();
@@ -744,8 +906,8 @@
       el.style.left=(t.x*100)+'%'; el.style.top=(t.y*100)+'%';
       el.dataset.k=k;
       if(t.kind==='npc'){
-        const h=CONFIG.spriteHeightNpc||88;
-        el.style.height=h+'px'; el.style.width=Math.round(h*0.66)+'px';
+        const h=CONFIG.spriteHeightNpc||24;   // vh
+        el.style.height=h+'vh'; el.style.width=(h*0.66)+'vh';
         el.innerHTML='<div class="shadow"></div>';
         setNpcVisual(el,t);
       } else {
@@ -817,6 +979,7 @@
     function drawIcon(){ el.style.height=''; el.style.width=''; el.innerHTML='<div class="shadow"></div><div class="obj">'+icon+'</div>'; }
     if(src){
       el.style.height=(CONFIG.objHeight||70)+'px';
+      el.innerHTML='<div class="shadow"></div>';
       const im=new Image(); im.className='objimg'; im.alt=t.prompt||'objeto'; im.src=src; im.onerror=drawIcon;
       el.appendChild(im);
     } else { drawIcon(); }
@@ -846,10 +1009,12 @@
     positionPlayer();
   }
 
+  function vhToPx(v){ return Math.round((window.innerHeight||760) * v / 100); }
+
   function applyPlayerVisual(){
     if(!playerEl)return;
     const dir=player.dir, src=CONFIG.sprites[dir], nat=spriteNat[dir];
-    const H=CONFIG.sprites.height||72;
+    const H=vhToPx(CONFIG.sprites.height||24);   // alto del personaje (vh -> px)
     const frames=Math.max(1, CONFIG.sprites.frames|0);
     const fb=playerEl.querySelector('.fb');
     if(spriteOK[dir] && nat){
@@ -896,10 +1061,13 @@
     if(moving){
       const len=Math.hypot(dx,dy)||1; dx/=len; dy/=len;
       const W=artEl.clientWidth||700, H=artEl.clientHeight||420;
-      player.x += dx*SPEED*dt;
-      player.y += dy*SPEED*dt*(W/H);   // corregir por aspecto para velocidad uniforme
-      player.x=Math.max(WALK_LEFT,Math.min(WALK_RIGHT,player.x));
-      player.y=Math.max(WALK_TOP,Math.min(WALK_BOTTOM,player.y));
+      let nx = player.x + dx*SPEED*dt;
+      let ny = player.y + dy*SPEED*dt*(W/H);   // corregir por aspecto para velocidad uniforme
+      nx=Math.max(WALK_LEFT,Math.min(WALK_RIGHT,nx));
+      ny=Math.max(playerTopLimit(H),Math.min(WALK_BOTTOM,ny));  // que el sprite no se monte sobre la pared
+      // colisión con NPCs (por eje, para poder "deslizarse"): no los atraviesa ni pasa detrás
+      if(!blockedByNpc(nx, player.y, W, H)) player.x = nx;
+      if(!blockedByNpc(player.x, ny, W, H)) player.y = ny;
       const nd = Math.abs(dx)>Math.abs(dy) ? (dx>0?'right':'left') : (dy>0?'down':'up');
       if(nd!==player.dir){ player.dir=nd; applyPlayerVisual(); }
       // walk animation
@@ -913,6 +1081,34 @@
     }
     positionPlayer();
     updatePrompt();
+  }
+
+  // radio de bloqueo alrededor de cada NPC: pequeño, solo para no encimarse;
+  // así NUNCA tapa el paso hacia la salida (y es menor que el de interacción para poder hablarles)
+  function npcBlockPx(){ return Math.max(22, Math.min(INTERACT_PX-40, Math.round(vhToPx(CONFIG.spriteHeightNpc||18)*0.18))); }
+
+  // tope superior del jugador. Los PIES deben quedar sobre el suelo; se permite que la
+  // parte ALTA del cuerpo se solape con la pared (como cualquier personaje parado frente
+  // a un muro). BELOW = fracción del sprite que debe ir por debajo de la línea de la pared.
+  //   Súbelo (hacia 1) para que el cuerpo invada menos la pared (menos área para caminar).
+  //   Bájalo para tener MÁS área de movimiento (el cuerpo se solapa más con la pared).
+  function playerTopLimit(H){
+    const charFrac = vhToPx(CONFIG.sprites.height||18) / (H||1);
+    const BELOW = 0.70;
+    let top = HORIZON + charFrac*BELOW;
+    return Math.max(WALK_TOP, Math.min(WALK_BOTTOM-0.05, top));
+  }
+
+  function blockedByNpc(px, py, W, H){
+    const room=ROOMS[state.room]; if(!room) return false;
+    const r=npcBlockPx();
+    for(let i=0;i<room.targets.length;i++){
+      const t=room.targets[i];
+      if(t.kind!=='npc') continue;
+      const dxp=(t.x-px)*W, dyp=(t.y-py)*H;
+      if(Math.hypot(dxp,dyp) < r) return true;
+    }
+    return false;
   }
 
   function targetPx(pt){
@@ -953,17 +1149,61 @@
   }
 
   function goNextRoom(){
-    if(state.room < ROOMS.length-1){
-      artEl.style.transition='opacity .2s'; artEl.style.opacity='.0';
-      setTimeout(()=>{ enterRoom(state.room+1); artEl.style.opacity='1'; }, 200);
+    if(state.room < ROOMS.length-1){ travelTo(state.room+1); }
+  }
+
+  // little drawn car for the travel screen
+  const TRAVEL_CAR = '<svg class="tv-car" viewBox="0 0 140 64" xmlns="http://www.w3.org/2000/svg">'+
+    '<ellipse cx="70" cy="56" rx="52" ry="5" fill="#000" opacity=".35"/>'+
+    '<path d="M16 44 V30 Q16 26 22 26 H44 L58 13 H92 Q98 13 102 18 L112 28 H120 Q126 28 126 34 V44 Z" fill="#b8362a"/>'+
+    '<path d="M60 16 H90 Q94 16 97 20 L104 28 H60 Z" fill="#2f7e83"/>'+
+    '<rect x="44" y="18" width="14" height="10" rx="1.5" fill="#2f7e83"/>'+
+    '<rect x="16" y="40" width="110" height="6" fill="#8e2a20"/>'+
+    '<circle cx="118" cy="40" r="4" fill="#d8a23a"/>'+
+    '<circle cx="42" cy="46" r="11" fill="#13202b" stroke="#f4ead2" stroke-width="2.5"/>'+
+    '<circle cx="100" cy="46" r="11" fill="#13202b" stroke="#f4ead2" stroke-width="2.5"/>'+
+    '<circle cx="42" cy="46" r="3.5" fill="#7d8896"/><circle cx="100" cy="46" r="3.5" fill="#7d8896"/>'+
+    '</svg>';
+
+  function travelTo(nextIdx){
+    const room=ROOMS[nextIdx];
+    const label=(room.travel)||('Rumbo a '+room.name);
+    state.mode='transition';
+    for(const k in keys) keys[k]=false;
+    if(playerEl) playerEl.classList.remove('walk');
+    if(promptEl) promptEl.style.display='none';
+    const ov=document.createElement('div'); ov.className='travel';
+    ov.innerHTML=
+      '<div class="tv-inner">'+
+        '<div class="tv-kicker">En camino</div>'+
+        '<div class="tv-scene">'+
+          '<div class="tv-bld"></div>'+
+          TRAVEL_CAR+
+          '<div class="tv-road"></div>'+
+          '<div class="tv-ground"></div>'+
+        '</div>'+
+        '<div class="tv-label">'+label+'<span class="dots"></span></div>'+
+        '<div class="tv-hint">Clic para continuar ▸</div>'+
+      '</div>';
+    const sceneEl=artEl.parentNode; sceneEl.appendChild(ov);
+    let done=false, timer=null;
+    function go(){
+      if(done)return; done=true;
+      if(timer) clearTimeout(timer);
+      state._travelGo=null;
+      ov.classList.add('out');
+      setTimeout(()=>{ ov.remove(); enterRoom(nextIdx); }, 300);
     }
+    ov.addEventListener('click', go);
+    state._travelGo=go;
+    timer=setTimeout(go, 2400);
   }
 
   /* ---------------- Talk show/hide ---------------- */
   function startTalk(sceneIndex){
     for(const k in keys) keys[k]=false;
     playerEl && playerEl.classList.remove('walk');
-    state.i=sceneIndex; state.j=0; state.mode='talk';
+    state.i=sceneIndex; state.j=0; state.mode='talk'; state._galLine=-1;
     showDialogue();
     renderLine();
   }
@@ -1040,11 +1280,133 @@
     if(typing && node){ // finish typing instantly on first tap
       clearInterval(typeTimer); node.textContent=sc.lines[state.j].text; typing=false; return;
     }
+    // if this line has a photo close-up not shown yet, play it first, then continue
+    const line=sc.lines[state.j];
+    if(line.gallery && state._galLine!==state.j){
+      state._galLine=state.j;
+      openGallery(line.gallery, realAdvance);
+      return;
+    }
+    realAdvance();
+  }
+
+  function realAdvance(){
+    const sc=SCENES[state.i];
     if(state.j < sc.lines.length-1){ state.j++; renderLine(); return; }
     // last line done
     if(sc.fact){ showFact(sc); return; }
     if(sc.choice){ showChoice(sc); return; }
     returnToMap();
+  }
+
+  /* ---------------- Photo close-up viewer ---------------- */
+  function updateAlbumBtn(){
+    const n=state.album.length;
+    if(albumCount) albumCount.textContent=n;
+    if(albumBtn) albumBtn.disabled = (n===0);
+  }
+  function addToAlbum(list){
+    list.forEach(src=>{ if(state.album.indexOf(src)===-1) state.album.push(src); });
+    updateAlbumBtn();
+  }
+
+  // triggered from dialogue: resolve a named group, remember it, play it as a sequence
+  function openGallery(key, onDone){
+    const photos=(CONFIG.fotos&&CONFIG.fotos[key])||[];
+    if(!photos.length){ onDone&&onDone(); return; }
+    addToAlbum(photos);
+    openCloseups(photos, { onDone:onDone });
+  }
+
+  // core viewer. opts: { onDone (sequence), browse (album), start, onClose }
+  function openCloseups(list, opts){
+    opts=opts||{};
+    const browse=!!opts.browse;
+    state.galleryOpen=true;
+    let idx=opts.start||0, busy=false;
+    const ov=document.createElement('div'); ov.className='gallery';
+    ov.innerHTML=
+      '<div class="gv-stage">'+
+        (browse?'<div class="gv-close" id="gvClose" title="Cerrar">✕</div>':'')+
+        '<div class="gv-frame" id="gvFrame">'+
+          '<div class="gv-ph">Foto no encontrada<small></small></div>'+
+          '<img class="gv-img" alt="">'+
+          (browse?'<div class="gv-nav prev" id="gvPrev">‹</div><div class="gv-nav next" id="gvNext">›</div>':'')+
+        '</div>'+
+        '<div class="gv-bar"><span class="gv-count"></span><span class="gv-hint">'+(browse?'Clic para la siguiente · ✕ para cerrar':'Clic para continuar ▸')+'</span></div>'+
+      '</div>';
+    const sceneEl=artEl.parentNode; sceneEl.appendChild(ov);
+    const frame=ov.querySelector('#gvFrame');
+    const img=ov.querySelector('.gv-img');
+    const phPath=ov.querySelector('.gv-ph small');
+    const count=ov.querySelector('.gv-count');
+    function render(){
+      const src=list[idx];
+      phPath.textContent=src;
+      img.style.display='';
+      img.onerror=()=>{ img.style.display='none'; };
+      img.src=src;
+      count.textContent=(idx+1)+' / '+list.length;
+    }
+    function swapTo(n){
+      if(busy)return; busy=true;
+      frame.classList.remove('enter'); frame.classList.add('discard');
+      setTimeout(()=>{
+        idx=n; render();
+        frame.classList.remove('discard'); frame.classList.add('enter');
+        setTimeout(()=>{ frame.classList.remove('enter'); busy=false; },300);
+      },260);
+    }
+    function next(){
+      if(busy)return;
+      if(browse){ swapTo((idx+1)%list.length); return; }
+      if(idx>=list.length-1){ // descarta la última y cierra
+        busy=true; frame.classList.add('discard'); setTimeout(close,260); return;
+      }
+      swapTo(idx+1);
+    }
+    function prev(){ if(busy||!browse)return; swapTo((idx-1+list.length)%list.length); }
+    function close(){
+      state.galleryOpen=false; state._galNext=null; state._galPrev=null; state._galClose=null;
+      ov.remove();
+      if(browse){ opts.onClose&&opts.onClose(); }
+      else { opts.onDone&&opts.onDone(); }
+    }
+    ov.addEventListener('click',(e)=>{
+      if(browse){
+        if(e.target.closest('#gvClose')){ close(); return; }
+        if(e.target.closest('#gvPrev')){ prev(); return; }
+        if(e.target.closest('#gvNext')){ next(); return; }
+      }
+      next();
+    });
+    state._galNext=next; state._galPrev=prev; state._galClose=close;
+    render();
+  }
+
+  // album: grid of accumulated photos; click a thumb to view it large
+  function openAlbum(){
+    if(state.galleryOpen || !state.album.length) return;
+    state.galleryOpen=true;
+    const ov=document.createElement('div'); ov.className='gallery';
+    const cells=state.album.map((src,i)=>
+      '<div class="album-cell" data-i="'+i+'"><div class="ac-ph">'+src.split('/').pop()+'</div>'+
+      '<img src="'+src+'" alt="" onerror="this.style.display=\'none\'"></div>').join('');
+    ov.innerHTML=
+      '<div class="gv-stage">'+
+        '<div class="gv-close" id="gvClose" title="Cerrar">✕</div>'+
+        '<div class="album-title">Galería de fotos · '+state.album.length+'</div>'+
+        '<div class="album-grid">'+cells+'</div>'+
+      '</div>';
+    const sceneEl=artEl.parentNode; sceneEl.appendChild(ov);
+    function close(){ state.galleryOpen=false; state._galClose=null; ov.remove(); }
+    ov.addEventListener('click',(e)=>{
+      if(e.target.closest('#gvClose')){ close(); return; }
+      const cell=e.target.closest('.album-cell');
+      if(cell){ const i=+cell.dataset.i; ov.remove(); state.galleryOpen=true;
+        openCloseups(state.album, { browse:true, start:i, onClose:openAlbum }); return; }
+    });
+    state._galClose=close;
   }
 
   /* ---------------- Fact overlay ---------------- */
@@ -1126,44 +1488,97 @@
     $("#publishBtn").addEventListener('click',finish);
   }
 
-  /* ---------------- End screen ---------------- */
+  /* ---------------- End screen (3 pasos) ---------------- */
   function finish(){
     state.done.add(6);
     state.mode='end';
     hideDialogue();
     state.i=SCENES.length;
-    const headline = state.headline || SCENES[6].choice.options[0].text;
-    const today = new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'});
+    show(end);
+    renderEndStep(0);
+  }
+
+  function renderEndStep(step){
+    if(redirectTimer){clearInterval(redirectTimer);redirectTimer=null;}
+    if(step===0) endSceneView();
+    else if(step===1) endFrontPageView();
+    else endSummaryView();
+  }
+
+  // Paso 1 — escena: Lucía ve a los vecinos leer la portada (con narración)
+  function endSceneView(){
     end.innerHTML=
       '<div class="endwrap">'+
-        '<article class="frontpage" aria-label="Portada publicada">'+
-          '<div class="fp-name">El Vigía de Piura</div>'+
-          '<div class="fp-meta"><span>Año I · Edición especial</span><span>Centro de Piura</span><span>'+today+'</span></div>'+
-          '<div class="fp-kicker">Investigación · Obras públicas</div>'+
-          '<h1 class="fp-headline">'+headline+'</h1>'+
-          '<div class="fp-by">Por Lucía · Equipo de Investigación</div>'+
-          '<div class="fp-cols">'+
-            '<p>La construcción del estanque de tormentas bajo la Plaza Tres Culturas, presentada como solución a las inundaciones del centro de Piura, atraviesa serios problemas de costo, plazos y gestión.</p>'+
-            '<p>El presupuesto pasó de S/ 18.7 millones en 2023 a S/ 69 millones en 2024. Pese a ello, hasta abril de 2026 el avance real era de apenas 10.48 %, cuando debía llegar al 91 %.</p>'+
-            '<p>A la demora se suman riesgos técnicos: la napa freática a 3.60 m frente a una excavación de 9 m, que obliga a bombear agua de forma constante.</p>'+
-            '<p>Los vecinos también alertan por el retiro de árboles patrimoniales de hasta 100 años, cuya reposición no garantiza el mismo valor histórico ni ambiental.</p>'+
-          '</div>'+
-        '</article>'+
-        '<div class="end-illus">'+artHTML('vecinos')+'</div>'+
+        '<div class="end-scene">'+
+          '<div class="es-illus">'+artHTML('vecinos')+'</div>'+
+          '<p class="es-cap">Al día siguiente, los vecinos se reúnen en la plaza a leer tu portada. '+
+            'Lucía los observa desde una esquina: la historia que tanto investigó ya es de todos.</p>'+
+          '<div class="end-actions"><button class="btn" id="endNext">Continuar ▸</button></div>'+
+        '</div>'+
+      '</div>';
+    end.scrollTop=0;
+    $("#endNext").addEventListener('click',()=>renderEndStep(1));
+    $("#endNext").focus();
+  }
+
+  // Paso 2 — la portada completa (imagen propia si existe, si no el diario generado)
+  function builtFrontPage(){
+    const headline = state.headline || SCENES[6].choice.options[0].text;
+    const today = new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'});
+    return ''+
+      '<article class="frontpage" aria-label="Portada publicada">'+
+        '<div class="fp-name">El Vigía de Piura</div>'+
+        '<div class="fp-meta"><span>Año I · Edición especial</span><span>Centro de Piura</span><span>'+today+'</span></div>'+
+        '<div class="fp-kicker">Investigación · Obras públicas</div>'+
+        '<h1 class="fp-headline">'+headline+'</h1>'+
+        '<div class="fp-by">Por Lucía · Equipo de Investigación</div>'+
+        '<div class="fp-cols">'+
+          '<p>La construcción del estanque de tormentas bajo la Plaza Tres Culturas, presentada como solución a las inundaciones del centro de Piura, atraviesa serios problemas de costo, plazos y gestión.</p>'+
+          '<p>El presupuesto pasó de S/ 18.7 millones en 2023 a S/ 69 millones en 2024. Pese a ello, hasta abril de 2026 el avance real era de apenas 10.48 %, cuando debía llegar al 91 %.</p>'+
+          '<p>A la demora se suman riesgos técnicos: la napa freática a 3.60 m frente a una excavación de 9 m, que obliga a bombear agua de forma constante.</p>'+
+          '<p>Los vecinos también alertan por el retiro de árboles patrimoniales de hasta 100 años, cuya reposición no garantiza el mismo valor histórico ni ambiental.</p>'+
+        '</div>'+
+      '</article>';
+  }
+  function endFrontPageView(){
+    const src=(CONFIG.portada||'').trim();
+    const actions='<div class="end-actions"><button class="btn" id="endNext">Continuar ▸</button></div>';
+    end.innerHTML='<div class="endwrap"><div class="portada-shell" id="portadaShell">'+builtFrontPage()+'</div>'+actions+'</div>';
+    if(src){
+      // intenta cargar tu imagen; si carga, reemplaza al diario generado; si falla, se queda el diario
+      const shell=$("#portadaShell");
+      const im=new Image();
+      im.className='portada-img'; im.alt='Portada publicada';
+      im.onload=()=>{ shell.innerHTML=''; shell.appendChild(im); };
+      im.src=src;
+    }
+    end.scrollTop=0;
+    $("#endNext").addEventListener('click',()=>renderEndStep(2));
+    $("#endNext").focus();
+  }
+
+  // Paso 3 — resumen final + volver al menú
+  function endSummaryView(){
+    const headline = state.headline || SCENES[6].choice.options[0].text;
+    const recap = state.evidence.length
+      ? '<div class="end-recap">'+state.evidence.map(t=>'<div class="ri">'+t+'</div>').join('')+'</div>'
+      : '';
+    end.innerHTML=
+      '<div class="endwrap">'+
         '<div class="endnote">'+
-          '<p class="em">Al día siguiente, los vecinos leen tu portada en la plaza. La historia ya es de todos.</p>'+
-          '<p class="small">Fin de la experiencia · Reuniste '+state.evidence.length+' de 4 pruebas</p>'+
+          '<p class="em">Fin de la experiencia</p>'+
+          '<p class="small">Titular publicado</p>'+
+          '<p class="small" style="color:var(--gold);text-transform:none;letter-spacing:.02em">«'+headline+'»</p>'+
         '</div>'+
-        '<div class="end-actions">'+
-          '<button class="btn" id="menuBtn">Volver al menú ▸</button>'+
-        '</div>'+
+        recap+
+        '<p class="small" style="font-family:var(--mono);color:var(--paper-2);letter-spacing:.1em">Reuniste '+state.evidence.length+' de 4 pruebas</p>'+
+        '<div class="end-actions"><button class="btn" id="menuBtn">Volver al menú ▸</button></div>'+
         '<div class="countdown" id="cd"></div>'+
       '</div>';
-    show(end);
+    end.scrollTop=0;
     $("#menuBtn").addEventListener('click',backToMenu);
     $("#menuBtn").focus();
-    // auto-redirect to menu after a while
-    let t=10000; const cd=$("#cd");
+    let t=25; const cd=$("#cd");
     cd.textContent='Volverás al menú en '+t+' s';
     redirectTimer=setInterval(()=>{
       t--; cd.textContent='Volverás al menú en '+t+' s';
@@ -1173,9 +1588,11 @@
 
   /* ---------------- Input ---------------- */
   $("#startBtn").addEventListener('click',startGame);
+  if(albumBtn) albumBtn.addEventListener('click',()=>{ openAlbum(); });
 
   // tap on dialogue text advances (but not on buttons/choices)
   dlg.addEventListener('click',(e)=>{
+    if(state.galleryOpen)return;
     if(e.target.closest('.next')||e.target.closest('.choice'))return;
     if(!document.getElementById('clip'))return; // only during a dialogue line
     if(state.mode==='talk') advance();
@@ -1185,6 +1602,16 @@
   document.addEventListener('keydown',(e)=>{
     if(play.classList.contains('hidden'))return;
     const k=e.key.toLowerCase();
+    if(state.galleryOpen){
+      if(e.key==='Escape'){ e.preventDefault(); if(state._galClose)state._galClose(); return; }
+      if(k==='arrowleft'){ e.preventDefault(); if(state._galPrev)state._galPrev(); return; }
+      if(k==='arrowright'||e.code==='Space'||e.code==='Enter'||k==='e'){ e.preventDefault(); if(state._galNext)state._galNext(); }
+      return;
+    }
+    if(state.mode==='transition'){
+      if(e.code==='Space'||e.code==='Enter'||k==='e'){ e.preventDefault(); if(state._travelGo)state._travelGo(); }
+      return;
+    }
     if(state.mode==='talk'){
       if(document.querySelector('.overlay'))return;
       if(document.getElementById('choices'))return;
@@ -1202,6 +1629,8 @@
   });
   // release keys if window loses focus (avoid "stuck" movement)
   window.addEventListener('blur',()=>{ for(const k in keys) keys[k]=false; });
+  // keep the player sized correctly if the window is resized (height is in vh)
+  window.addEventListener('resize',()=>{ if(playerEl) applyPlayerVisual(); });
 
   // ---- touch controls ----
   if(window.matchMedia('(hover:none),(pointer:coarse)').matches){ document.body.classList.add('touch-on'); }
@@ -1217,6 +1646,8 @@
   const actBtn=$("#actBtn");
   actBtn.addEventListener('pointerdown',(ev)=>{
     ev.preventDefault();
+    if(state.galleryOpen){ if(state._galNext)state._galNext(); return; }
+    if(state.mode==='transition'){ if(state._travelGo)state._travelGo(); return; }
     if(state.mode==='map') tryInteract();
     else if(state.mode==='talk' && document.getElementById('clip')) advance();
   });
